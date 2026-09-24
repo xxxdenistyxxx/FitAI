@@ -4,87 +4,820 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>FitAI</title>
 <style>
-:root{--bg:#0b0d12;--card:#151922;--muted:#8f98aa;--text:#f6f7fb;--accent:#5b8cff;--green:#35d07f}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
-.app{max-width:680px;margin:auto;min-height:100vh;padding-bottom:92px}.top{padding:24px 20px 10px}.top h1{margin:0;font-size:30px}.top p{color:var(--muted);margin:5px 0 0}
-.page{display:none;padding:10px 16px}.page.active{display:block}.card{background:var(--card);border-radius:20px;padding:18px;margin:12px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric{background:#1b202b;padding:16px;border-radius:16px}.metric b{display:block;font-size:23px;margin-top:5px}.muted{color:var(--muted)}.bar{height:9px;background:#292f3b;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);width:71%}
-button{border:0;border-radius:14px;padding:13px 16px;font-weight:700;font-size:15px;background:var(--accent);color:white}button.secondary{background:#252b37}button.full{width:100%}
-.row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #272d38}.row:last-child{border:0}
-.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,23,.94);backdrop-filter:blur(18px);display:flex;justify-content:center;border-top:1px solid #242936;z-index:5}.nav button{background:none;color:var(--muted);border-radius:0;padding:12px 10px;flex:1;max-width:130px;font-size:12px}.nav button.active{color:white}.nav span{display:block;font-size:20px;margin-bottom:2px}
-input{width:100%;padding:13px;border-radius:12px;border:1px solid #343b48;background:#10131a;color:white;font-size:16px}
-#photo{display:none}.foodimg{width:100%;border-radius:16px;margin-top:12px;display:none}.pill{display:inline-block;padding:6px 10px;border-radius:99px;background:#202735;color:#b8c7ff;font-size:12px}
+:root{
+  --bg:#000;
+  --card:#0b0b0d;
+  --card2:#111113;
+  --line:#242428;
+  --text:#f5f5f7;
+  --muted:#8b8b93;
+  --accent:#fff;
+  --active:#6d5dfc;
+  --green:#35d07f;
+  --orange:#ffb454;
+  --red:#ff6b6b;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif
+}
+button,input,select,textarea{font:inherit}
+button{
+  border:0;border-radius:12px;padding:12px 15px;font-weight:700;
+  background:#f5f5f7;color:#050505;cursor:pointer
+}
+button.secondary{background:#171719;color:#fff;border:1px solid #2b2b30}
+button.ghost{background:transparent;color:#fff;border:1px solid #2b2b30}
+button.danger{background:#241315;color:#ff9b9b;border:1px solid #452126}
+button.full{width:100%}
+button:active{transform:scale(.98)}
+input,select,textarea{
+  width:100%;padding:12px;border-radius:11px;border:1px solid #303035;
+  background:#08080a;color:#fff;outline:none
+}
+input:focus,select:focus,textarea:focus{border-color:#66666f}
+textarea{min-height:100px;resize:vertical}
+.app{max-width:760px;margin:auto;min-height:100vh;padding-bottom:92px}
+.top{
+  padding:25px 20px 12px;display:flex;justify-content:space-between;
+  align-items:flex-start;gap:15px
+}
+.top h1{margin:0;font-size:30px;letter-spacing:-.7px}
+.top p{color:var(--muted);margin:5px 0 0}
+.avatar{
+  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+  background:#fff;color:#000;font-weight:800
+}
+.page{display:none;padding:8px 16px}.page.active{display:block}
+.card{
+  background:var(--card);border:1px solid #18181b;border-radius:18px;
+  padding:17px;margin:12px 0
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.metric{background:var(--card2);border:1px solid #1c1c20;padding:15px;border-radius:15px}
+.metric b{display:block;font-size:22px;margin-top:5px}
+.muted{color:var(--muted)}.small{font-size:13px}.tiny{font-size:11px}
+.bar{height:8px;background:#242428;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:#fff;width:0%;transition:.3s}
+.row{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--line)
+}
+.row:last-child{border:0}.row-main{min-width:0}
+.row-main b{display:block}
+.pill{
+  display:inline-block;padding:5px 9px;border-radius:99px;
+  background:#151518;color:#c9c9d0;font-size:11px;font-weight:700;
+  border:1px solid #27272b
+}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.section-title h2,.section-title h3{margin:0}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.formgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}
+.nav{
+  position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.96);
+  backdrop-filter:blur(18px);display:flex;justify-content:center;
+  border-top:1px solid #202023;z-index:50
+}
+.nav button{
+  position:relative;background:transparent;color:#696970;border-radius:0;
+  padding:9px 5px 10px;flex:1;max-width:120px;font-size:11px;
+  transition:.18s;color:#74747b
+}
+.nav button span{display:block;font-size:18px;margin-bottom:2px;filter:grayscale(1)}
+.nav button.active{color:var(--nav-color,#fff);font-weight:800}
+.nav button.active span{filter:none}
+.nav button.active:before{
+  content:"";position:absolute;top:0;left:20%;right:20%;height:2px;
+  background:var(--nav-color,#fff);border-radius:0 0 4px 4px
+}
+.exercise,.meal{
+  background:#101012;border:1px solid #1c1c20;padding:14px;
+  border-radius:15px;margin:10px 0
+}
+.exercise h3,.meal h3{margin:0 0 8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1;min-width:120px}
+.empty{text-align:center;padding:25px 10px;color:var(--muted)}
+.toast{
+  position:fixed;left:50%;bottom:90px;transform:translateX(-50%);
+  background:#f5f5f7;color:#050505;padding:11px 16px;border-radius:12px;
+  font-weight:700;z-index:100;display:none
+}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;
+  align-items:flex-end;justify-content:center;z-index:80;padding:10px}
+.modal.show{display:flex}
+.sheet{
+  width:min(760px,100%);background:#0b0b0d;border:1px solid #252529;
+  border-radius:22px;padding:20px;max-height:90vh;overflow:auto
+}
+.login-screen{
+  position:fixed;inset:0;background:#000;z-index:200;display:none;
+  align-items:center;justify-content:center;padding:20px
+}
+.login-screen.show{display:flex}
+.login-box{
+  width:min(440px,100%);background:#0b0b0d;border:1px solid #242428;
+  border-radius:22px;padding:24px
+}
+.logo{font-size:38px;font-weight:900;letter-spacing:-1px}
+.logo span{color:#8b80ff}
+.kpi{font-size:28px;font-weight:850}
+.positive{color:var(--green)}.warning{color:var(--orange)}.negative{color:var(--red)}
+.statline{display:flex;justify-content:space-between;margin:8px 0}
+.chart{
+  height:150px;display:flex;align-items:flex-end;gap:8px;padding:15px 0 5px;
+  border-bottom:1px solid var(--line)
+}
+.chart .barcol{
+  flex:1;min-width:8px;border-radius:6px 6px 2px 2px;background:#777;
+  position:relative
+}
+.chart .barcol span{
+  position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--muted)
+}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line)}
+hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+h1,h2,h3{letter-spacing:-.2px}
+@media(max-width:520px){
+  .grid3{grid-template-columns:1fr 1fr}.formgrid3{grid-template-columns:1fr 1fr}
+  .top{padding-top:20px}.card{padding:16px}
+}
+
+/* FitAI Buddy training library */
+.training-tabs{display:flex;gap:7px;overflow:auto;padding:4px 0 8px;scrollbar-width:none}.training-tabs::-webkit-scrollbar{display:none}
+.training-tab{background:#101012;color:#8d8d96;border:1px solid #242429;padding:9px 13px;border-radius:999px;white-space:nowrap;font-size:12px}
+.training-tab.active{background:#6d5dfc;color:#fff;border-color:#6d5dfc}
+.muscle-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.muscle-card{position:relative;overflow:hidden;background:#0d0d0f;border:1px solid #222227;border-radius:17px;min-height:175px;cursor:pointer}
+.muscle-card img{width:100%;height:135px;object-fit:cover;display:block;filter:saturate(.9)}
+.muscle-card:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 42%,rgba(0,0,0,.9) 100%);pointer-events:none}
+.muscle-card .mc-copy{position:absolute;left:13px;right:10px;bottom:11px;z-index:2}.mc-copy b{font-size:15px}.mc-copy span{display:block;color:#b6b6bd;font-size:11px;margin-top:2px}
+.exercise-library{display:grid;gap:9px}.library-card{display:grid;grid-template-columns:76px 1fr auto;gap:12px;align-items:center;background:#0e0e10;border:1px solid #222227;border-radius:15px;padding:9px;cursor:pointer}
+.library-card img{width:76px;height:62px;border-radius:11px;object-fit:cover}.library-card h3{font-size:14px;margin:0 0 4px}.library-card p{margin:0;color:#898991;font-size:11px;line-height:1.35}.library-card .arrow{color:#77777f;font-size:22px}
+.library-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0 8px}.library-head h3{margin:0}.library-count{font-size:11px;color:#8d8d96}
+.exercise-hero{background:#0e0e10;border:1px solid #242429;border-radius:18px;overflow:hidden}.exercise-hero img{width:100%;height:205px;object-fit:cover;display:block}.exercise-hero-body{padding:16px}.exercise-hero-body h2{margin:0 0 5px}.exercise-hero-body p{color:#a2a2aa;line-height:1.5;margin:6px 0 14px}.tag-row{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.instruction{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #222227}.instruction:last-child{border:0}.instruction-num{width:27px;height:27px;border-radius:50%;background:#6d5dfc;color:white;display:grid;place-items:center;font-weight:800;flex:none}.history-table{overflow:auto}.history-table table{min-width:100%;border-collapse:collapse;font-size:12px}.history-table th,.history-table td{padding:9px 7px;border-bottom:1px solid #242428;text-align:left;white-space:nowrap}.history-table th{color:#8b8b93;font-weight:600}.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat-box{background:#111114;border:1px solid #222227;border-radius:13px;padding:11px}.stat-box b{display:block;font-size:18px;margin-top:4px}.back-link{background:transparent;color:#a9a9b1;padding:0;border:0;font-weight:700}.back-link:hover{color:#fff}
+@media(max-width:520px){.muscle-grid{grid-template-columns:1fr 1fr}.muscle-card{min-height:160px}.muscle-card img{height:120px}.library-card{grid-template-columns:68px 1fr auto}.library-card img{width:68px;height:58px}.exercise-hero img{height:190px}.stat-grid{grid-template-columns:1fr 1fr}}
+.training-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px}.training-search{flex:1;min-width:180px;background:#101012;border:1px solid #2a2a30;color:#fff;border-radius:13px;padding:11px 13px;outline:none}.training-search:focus{border-color:#6d5dfc}.filter-chip{background:#101012!important;color:#999!important;border:1px solid #29292f!important;padding:8px 11px!important;border-radius:999px!important;font-size:11px!important}.filter-chip.active{background:#6d5dfc!important;color:#fff!important;border-color:#6d5dfc!important}.fav-btn{width:38px;height:38px;padding:0!important;border-radius:12px!important;background:#151518!important;color:#fff!important;border:1px solid #2a2a30!important;font-size:18px!important}.fav-btn.active{color:#ffcf4a!important;border-color:#6d5dfc!important}.exercise-library .library-card{transition:.15s transform,.15s border-color}.exercise-library .library-card:hover{border-color:#45405f;transform:translateY(-1px)}.exercise-hero-media{position:relative}.exercise-hero-media:after{content:'▶';position:absolute;left:16px;bottom:16px;width:42px;height:42px;border-radius:50%;background:rgba(109,93,252,.92);display:grid;place-items:center;color:#fff;font-size:14px;box-shadow:0 5px 20px rgba(109,93,252,.3)}.anatomy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.anatomy-box{background:#111114;border:1px solid #242429;border-radius:13px;padding:10px}.anatomy-box img{width:100%;height:110px;object-fit:cover;border-radius:10px}.quick-stat{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #242428}.quick-stat:last-child{border-bottom:0}.empty-state{padding:18px;text-align:center;color:#77777f}.exercise-meta-line{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.exercise-meta-line span{font-size:10px;color:#9a9aa3;background:#161619;border:1px solid #29292f;padding:4px 7px;border-radius:999px}
+@media(max-width:520px){.anatomy-grid{grid-template-columns:1fr 1fr}.training-tools{position:sticky;top:0;z-index:4;background:#000;padding:7px 0}}
+
+.health-import-box{background:#0e0e10;border:1px solid #242429;border-radius:16px;padding:14px;margin-top:10px}.health-source-badge{display:inline-flex;align-items:center;gap:6px;background:#16131f;color:#cfc5ff;border:1px solid #3a2b72;padding:5px 9px;border-radius:999px;font-size:11px}.health-help ol{padding-left:20px}.health-help li{margin:9px 0;color:#b5b5bd}.health-date-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #222}.health-date-row:last-child{border-bottom:0}
+.health-grid{margin-top:14px}.health-card{min-height:108px}.health-card b{font-size:26px}.health-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}.health-detail-box{background:#111;border:1px solid #242424;border-radius:14px;padding:12px}.health-detail-box b{display:block;font-size:18px;margin-top:4px}.health-workout{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #222}.health-workout:last-child{border-bottom:0}.health-source{font-size:11px;color:#9b9b9b}.health-ok{border-color:#3a2b72}.health-ok .pill{background:#2a1b63;color:#cbbcff}
+@media(max-width:430px){.health-details{grid-template-columns:1fr}.nav button{font-size:8px}.nav button span{font-size:15px}}
 </style>
 </head>
 <body>
-<div class="app">
-<header class="top"><h1>FitAI</h1><p id="greeting">Dein persönlicher AI Fitness Coach</p></header>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="logo">Fit<span>AI</span></div>
+    <p class="muted">Dein persönlicher Fitness-Coach – lokal und kostenlos.</p>
+    <div id="loginForm">
+      <h2>Anmelden</h2>
+      <label>Profil</label><select id="loginUser"></select><br><br>
+      <label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN">
+      <br><br><button class="full" onclick="login()">Anmelden</button>
+      <br><br><button class="ghost full" onclick="showRegister()">Neues Profil erstellen</button>
+      <p class="tiny muted">Hinweis: Profile werden in diesem Browser gespeichert. Es ist noch kein Cloud-Account.</p>
+    </div>
+    <div id="registerForm" style="display:none">
+      <h2>Neues Profil</h2>
+      <label>Vorname / Name</label><input id="regName" placeholder="z. B. Alexander">
+      <br><br><label>PIN (4–6 Stellen)</label><input id="regPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN">
+      <br><br><button class="full" onclick="register()">Profil erstellen</button>
+      <br><br><button class="secondary full" onclick="showLogin()">Zur Anmeldung</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+<header class="top">
+  <div><h1>FitAI</h1><p id="subtitle">Dein persönlicher Fitness Coach</p></div>
+  <button class="avatar" onclick="go('settings')"><span id="avatarText">F</span></button>
+</header>
 
 <section id="home" class="page active">
-<div class="grid">
-<div class="metric">⚡ Readiness<b>76%</b><span class="muted">heute</span></div>
-<div class="metric">⚖️ Gewicht<b>95,8 kg</b><span class="muted">Trend −0,3 kg/Woche</span></div>
-<div class="metric">😴 Schlaf<b>7h 42m</b><span class="muted">letzte Nacht</span></div>
-<div class="metric">🔥 Kalorien<b>1.840</b><span class="muted">von 2.600 kcal</span></div>
-</div>
-<div class="card"><span class="pill">HEUTE</span><h2>Push A</h2><p class="muted">Deine Schulterleistung stagniert. Heute etwas weniger Volumen und saubere Technik priorisieren.</p><button onclick="go('training')">Training starten</button></div>
-<div class="card"><h3>🤖 AI Insight</h3><p>Dein Gewicht sinkt langsam, während deine Trainingsleistung stabil bleibt. Wir beobachten den Trend statt einzelne Tage zu überbewerten.</p></div>
+  <div class="card">
+    <span class="pill" id="datePill">HEUTE</span>
+    <h2 id="hello">Hallo 👋</h2>
+    <p class="muted" id="homeGoalText">Dein Ziel wird hier angezeigt.</p>
+  </div>
+  <div class="grid">
+    <div class="metric">⚡ Readiness<b id="readiness">76%</b><span class="muted">Tageswert</span></div>
+    <div class="metric">⚖️ Gewicht<b id="homeWeight">–</b><span class="muted" id="weightTrend">noch kein Trend</span></div>
+    <div class="metric">🔥 Kalorien<b id="homeCalories">0</b><span class="muted" id="homeCaloriesGoal">von 0 kcal</span></div>
+    <div class="metric">🥩 Protein<b id="homeProtein">0 g</b><span class="muted" id="homeProteinGoal">von 0 g</span></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><h3>🏋️ Heute</h3><span class="pill" id="todayWorkoutPill">Plan</span></div>
+    <h2 id="todayWorkout">Kein Training geplant</h2>
+    <p class="muted" id="todayWorkoutText">Erstelle deinen ersten Trainingsplan.</p>
+    <button class="full" onclick="go('training')">Training öffnen</button>
+  </div>
+  <div class="card">
+    <h3>🤖 Coach Insight</h3>
+    <p id="homeInsight" class="muted">Protokolliere Gewicht, Ernährung und Training. FitAI erstellt daraus deine persönliche Übersicht.</p>
+  </div>
 </section>
 
 <section id="training" class="page">
-<h2>Training</h2>
-<div class="card">
-<div class="row"><div><b>Bankdrücken</b><br><span class="muted">80 kg × 8 • RIR 2</span></div><span>✓</span></div>
-<div class="row"><div><b>Latziehen</b><br><span class="muted">70 kg × 10 • RIR 2</span></div><span>✓</span></div>
-<div class="row"><div><b>Schulterdrücken</b><br><span class="muted">40 kg × 8 • RIR 1</span></div><span>○</span></div>
-</div>
-<div class="card"><h3>AI Empfehlung</h3><p>Wenn dein nächster Satz wieder bei RIR 1 landet, reduziere das Gewicht um ca. 5–7 % statt weitere Wiederholungen zu erzwingen.</p><button class="full" onclick="alert('Workout gespeichert – Demo')">Workout speichern</button></div>
+  <div class="section-title"><div><h2>🏋️ Training</h2><p class="muted small" style="margin:4px 0 0">Muskelgruppen, Übungen & deine komplette Kraft-Historie</p></div><button class="secondary" onclick="openModal('planModal')">+ Plan</button></div>
+  <div class="training-tabs" id="trainingTabs">
+    <button class="training-tab active" data-tmode="groups" onclick="setTrainingMode('groups')">Muskelgruppen</button>
+    <button class="training-tab" data-tmode="plans" onclick="setTrainingMode('plans')">Meine Pläne</button>
+    <button class="training-tab" data-tmode="all" onclick="setTrainingMode('all')">Übungen</button>
+    <button class="training-tab" data-tmode="history" onclick="setTrainingMode('history')">Historie</button>
+  </div>
+
+  <div id="trainingBrowser"></div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="section-title"><h3>Aktuelles Workout</h3><span class="pill" id="workoutTimer">Bereit</span></div>
+    <p class="muted" id="activePlanText">Wähle einen Trainingsplan.</p>
+    <div id="workoutExercises"></div>
+    <div class="actions"><button onclick="startWorkout()">Workout starten</button><button class="secondary" onclick="finishWorkout()">Beenden</button></div>
+  </div>
 </section>
 
 <section id="nutrition" class="page">
-<h2>Ernährung</h2>
-<div class="card"><h2>1.840 / 2.600 kcal</h2><div class="bar"><i></i></div><p class="muted">Protein 142/190 g · Kohlenhydrate 188/280 g · Fett 61/75 g</p></div>
-<div class="card">
-<h3>📸 Essen analysieren</h3>
-<p class="muted">Fotografiere dein Essen oder wähle ein Foto aus. Die AI soll Lebensmittel, Portionsgrößen und Makros schätzen.</p>
-<input id="photo" type="file" accept="image/*" capture="environment">
-<button class="full" onclick="document.getElementById('photo').click()">Kamera / Foto auswählen</button>
-<img id="preview" class="foodimg">
-</div>
-<div id="analysis" class="card" style="display:none"><span class="pill">AI-SCHÄTZUNG • DEMO</span><h3>Erkanntes Essen</h3>
-<div class="row"><span>🍗 Hähnchen · ~180 g</span><b>300 kcal</b></div>
-<div class="row"><span>🍚 Reis · ~200 g</span><b>260 kcal</b></div>
-<div class="row"><span>🥦 Gemüse · ~150 g</span><b>60 kcal</b></div>
-<div class="row"><span>🥫 Sauce · ~50 g</span><b>100 kcal</b></div>
-<h2>≈ 720 kcal</h2><p class="muted">Protein ~58 g · Kohlenhydrate ~65 g · Fett ~18 g</p>
-<button onclick="alert('Essen übernommen – Demo')">Übernehmen</button></div>
-<div class="card"><h3>Heute</h3><div class="row"><span>Frühstück</span><b>520 kcal</b></div><div class="row"><span>Mittagessen</span><b>720 kcal</b></div><div class="row"><span>Snack</span><b>180 kcal</b></div></div>
+  <div class="section-title"><h2>🍽️ Ernährung</h2><button class="secondary" onclick="openModal('foodModal')">+ Essen</button></div>
+  <div class="card">
+    <div class="kpi"><span id="calNow">0</span> <span class="muted">/ <span id="calGoal">0</span> kcal</span></div>
+    <br><div class="bar"><i id="calBar"></i></div>
+    <div class="statline"><span>🥩 Protein</span><b><span id="pNow">0</span> / <span id="pGoal">0</span> g</b></div>
+    <div class="statline"><span>🍚 Kohlenhydrate</span><b><span id="cNow">0</span> / <span id="cGoal">0</span> g</b></div>
+    <div class="statline"><span>🥑 Fett</span><b><span id="fNow">0</span> / <span id="fGoal">0</span> g</b></div>
+  </div>
+  <div class="card">
+    <div class="section-title"><h3>Heute</h3><span class="muted small" id="mealDate"></span></div>
+    <div id="foodList"></div>
+  </div>
+  <div class="card">
+    <h3>💡 Ernährung</h3>
+    <p id="nutritionInsight" class="muted">Trage deine Mahlzeiten ein, um dein Tagesziel zu verfolgen.</p>
+  </div>
+</section>
+
+<section id="health" class="page">
+  <div class="section-title"><div><h2>❤️ Health & Apple Watch</h2><p class="muted small" style="margin:4px 0 0">Schritte, Schlaf, Workouts & Aktivität</p></div><button class="secondary" onclick="openHealthImport()">📥 Importieren</button></div>
+  <div id="healthStatus" class="card">
+    <h3>⌚ Apple Watch → Apple Health → FitAI Buddy</h3>
+    <p class="muted">In der GitHub-Pages-Version kann FitAI Buddy Apple Health nicht direkt auslesen. Du kannst deine Health-Daten aber als <b>export.xml</b>, JSON oder CSV importieren. Die Daten bleiben lokal in deinem Browser.</p>
+    <div class="actions"><button class="full" onclick="openHealthImport()">📥 Health-Daten importieren</button><button class="secondary" onclick="showHealthHelp()">ℹ️ So geht's</button></div>
+    <input id="healthFileInput" type="file" accept=".xml,.json,.csv,text/xml,application/json,text/csv" style="display:none" onchange="importHealthFile(event)">
+    <p class="tiny muted" style="margin-bottom:0">Tipp: In Apple Health über dein Profil → „Alle Gesundheitsdaten exportieren“ und anschließend <b>export.xml</b> auswählen.</p>
+  </div>
+  <div class="grid health-grid">
+    <div class="metric health-card"><span>👟 Schritte</span><b id="healthSteps">–</b><span class="muted">heute</span></div>
+    <div class="metric health-card"><span>😴 Schlaf</span><b id="healthSleep">–</b><span class="muted" id="healthSleepDetail">heute Nacht</span></div>
+    <div class="metric health-card"><span>🏃 Workouts</span><b id="healthWorkouts">–</b><span class="muted">heute</span></div>
+    <div class="metric health-card"><span>🔥 Aktivkalorien</span><b id="healthCalories">–</b><span class="muted">heute</span></div>
+  </div>
+  <div class="card"><div class="section-title"><h3>❤️ Gesundheitsdaten</h3><span class="pill" id="healthUpdated">Noch nicht synchronisiert</span></div><div id="healthDetails" class="health-details"><div class="empty">Verbinde Apple Health, um weitere Daten wie Distanz, Herzfrequenz und Trainingsdetails anzuzeigen.</div></div></div>
+  <div class="card"><h3>🏋️ Apple-Workouts</h3><div id="healthWorkoutList"><div class="empty">Noch keine Apple-Workouts synchronisiert.</div></div></div>
+  <div class="card"><h3>🔐 Datenschutz</h3><p class="muted small">Der Import wird nur in deinem Browser verarbeitet. Es wird nichts automatisch an einen Server übertragen. Wenn du Daten löschst, kannst du den Health-Import hier ebenfalls zurücksetzen.</p><button class="danger" onclick="clearHealthData()">Health-Daten löschen</button></div>
 </section>
 
 <section id="coach" class="page">
-<h2>AI Coach</h2><div class="card"><p><b>Coach:</b> Ich analysiere Training, Ernährung und Verlauf gemeinsam.</p><p class="muted">Beispiele: „Warum war mein Bankdrücken heute schlechter?“ · „Was soll ich heute trainieren?“ · „Wie viel Protein fehlt mir noch?“</p></div>
-<div class="card"><input id="q" placeholder="Frage deinen Coach …"><br><br><button onclick="coach()">Senden</button><p id="answer" class="muted"></p></div>
+  <h2>✨ AI Coach</h2>
+  <div class="card">
+    <p><b>FitAI Coach</b></p>
+    <p class="muted">Aktuell arbeitet der Coach ohne externe KI und nutzt deine lokal gespeicherten Daten. Eine echte KI können wir später als separates Modul ergänzen.</p>
+  </div>
+  <div class="card">
+    <input id="coachQuestion" placeholder="z. B. Wie viel Protein fehlt mir?"><br><br>
+    <button onclick="askCoach()">Senden</button>
+    <p id="coachAnswer" class="muted"></p>
+  </div>
+  <div class="card">
+    <h3>📌 Schnellfragen</h3>
+    <div class="actions">
+      <button class="secondary" onclick="quickCoach('protein')">Protein heute?</button>
+      <button class="secondary" onclick="quickCoach('kalorien')">Kalorien heute?</button>
+      <button class="secondary" onclick="quickCoach('training')">Training?</button>
+      <button class="secondary" onclick="quickCoach('gewicht')">Gewicht?</button>
+    </div>
+  </div>
 </section>
 
 <section id="progress" class="page">
-<h2>Progress</h2>
-<div class="card"><h3>💪 Kraft</h3><div class="row"><span>Bankdrücken</span><b>70 → 80 kg</b></div><div class="row"><span>Latziehen</span><b>65 → 70 kg</b></div><div class="row"><span>Schulterdrücken</span><b>40 → 40 kg</b></div></div>
-<div class="card"><h3>⚖️ Körper</h3><div class="row"><span>Gewicht</span><b>96,4 → 95,8 kg</b></div><div class="row"><span>Trend</span><b>−0,3 kg/Woche</b></div></div>
+  <h2>📈 Fortschritt</h2>
+  <div class="grid">
+    <div class="metric">⚖️ Gewicht<b id="progressWeight">–</b><span class="muted">aktuell</span></div>
+    <div class="metric">🏋️ Workouts<b id="progressWorkouts">0</b><span class="muted">gesamt</span></div>
+  </div>
+  <div class="card"><h3>Gewichtsverlauf</h3><div id="weightChart" class="chart"></div></div>
+  <div class="card"><h3>Kraftentwicklung</h3><div id="strengthTable"></div></div>
+  <div class="card"><h3>📝 Gewicht eintragen</h3>
+    <div class="formgrid"><input id="newWeight" type="number" step="0.1" placeholder="Gewicht kg"><input id="weightNote" placeholder="Notiz (optional)"></div>
+    <br><button class="full" onclick="addWeight()">Gewicht speichern</button>
+  </div>
+</section>
+
+<section id="settings" class="page">
+  <h2>⚙️ Profil & Einstellungen</h2>
+  <div class="card">
+    <div class="section-title"><h3>👤 Persönliche Daten</h3><span class="pill" id="profileNamePill"></span></div><br>
+    <div class="formgrid">
+      <div><label>Vorname / Name</label><input id="sName"></div>
+      <div><label>Alter</label><input id="sAge" type="number"></div>
+      <div><label>Größe (cm)</label><input id="sHeight" type="number"></div>
+      <div><label>Gewicht (kg)</label><input id="sWeight" type="number" step="0.1"></div>
+      <div><label>Geschlecht</label><select id="sSex"><option value="male">Männlich</option><option value="female">Weiblich</option><option value="other">Divers / keine Angabe</option></select></div>
+      <div><label>Aktivität</label><select id="sActivity"><option value="1.2">Wenig aktiv</option><option value="1.375">Leicht aktiv</option><option value="1.55">Moderat aktiv</option><option value="1.725">Sehr aktiv</option></select></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🎯 Ziel</h3>
+    <select id="sGoal">
+      <option value="lose">Körperfett reduzieren</option>
+      <option value="maintain">Gewicht halten</option>
+      <option value="gain">Muskelaufbau / Zunahme</option>
+    </select>
+    <br><br><button class="secondary full" onclick="calculateTargets()">Ziele berechnen</button>
+    <p class="muted small">Die Berechnung ist ein Startwert. Du kannst die Ziele danach jederzeit manuell anpassen.</p>
+  </div>
+  <div class="card">
+    <h3>🔥 Kalorien & Makros</h3>
+    <div class="formgrid">
+      <div><label>Kalorien / Tag</label><input id="sCal" type="number"></div>
+      <div><label>Protein (g)</label><input id="sP" type="number"></div>
+      <div><label>Kohlenhydrate (g)</label><input id="sC" type="number"></div>
+      <div><label>Fett (g)</label><input id="sF" type="number"></div>
+    </div>
+    <br><button class="full" onclick="saveSettings()">Änderungen speichern</button>
+  </div>
+  <div class="card">
+    <h3>💾 Daten & Profil</h3>
+    <p class="muted small">Dein Profil und deine Daten liegen derzeit ausschließlich in diesem Browser auf diesem Gerät.</p>
+    <div class="actions">
+      <button class="secondary" onclick="exportData()">Backup exportieren</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Backup importieren</button>
+      <button class="danger" onclick="deleteCurrentProfile()">Profil löschen</button>
+    </div>
+    <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importData(event)">
+    <hr>
+    <button class="ghost full" onclick="logout()">Abmelden</button>
+  </div>
 </section>
 
 <nav class="nav">
-<button class="active" onclick="go('home',this)"><span>⌂</span>Home</button>
-<button onclick="go('training',this)"><span>🏋️</span>Training</button>
-<button onclick="go('nutrition',this)"><span>🍽️</span>Essen</button>
-<button onclick="go('coach',this)"><span>✨</span>Coach</button>
-<button onclick="go('progress',this)"><span>📈</span>Progress</button>
+<button class="active" style="--nav-color:#ffffff" data-page="home" onclick="go('home',this)"><span>⌂</span>Home</button>
+<button style="--nav-color:#6d5dfc" data-page="training" onclick="go('training',this)"><span>🏋️</span>Training</button>
+<button style="--nav-color:#35d07f" data-page="nutrition" onclick="go('nutrition',this)"><span>🍽️</span>Essen</button>
+<button style="--nav-color:#ff4f81" data-page="health" onclick="go('health',this)"><span>❤️</span>Health</button>
+<button style="--nav-color:#ffb454" data-page="coach" onclick="go('coach',this)"><span>✨</span>Coach</button>
+<button style="--nav-color:#4da3ff" data-page="progress" onclick="go('progress',this)"><span>📈</span>Progress</button>
+<button style="--nav-color:#ff5fa2" data-page="settings" onclick="go('settings',this)"><span>⚙️</span>Profil</button>
 </nav>
 </div>
+
+<div id="healthImportModal" class="modal" onclick="if(event.target===this)closeModal('healthImportModal')"><div class="sheet health-help">
+  <div class="section-title"><h2>❤️ Health-Daten importieren</h2><button class="secondary" onclick="closeModal('healthImportModal')">✕</button></div>
+  <div class="health-import-box"><span class="health-source-badge">⌚ Apple Watch</span> <span class="health-source-badge">❤️ Apple Health</span> <span class="health-source-badge">🌐 GitHub Pages</span>
+    <p class="muted small">Für die reine Web-Version importierst du die exportierten Health-Daten manuell. FitAI Buddy berechnet daraus die Tageswerte und zeigt die Apple-Workouts an.</p>
+  </div>
+  <button class="full" onclick="document.getElementById('healthFileInput').click();closeModal('healthImportModal')">📥 Datei auswählen</button>
+  <hr>
+  <h3>So bekommst du die Daten vom iPhone</h3>
+  <ol><li>Öffne <b>Apple Health</b> auf dem iPhone.</li><li>Tippe oben rechts auf dein <b>Profilbild</b>.</li><li>Wähle <b>Alle Gesundheitsdaten exportieren</b>.</li><li>Öffne die exportierte ZIP-Datei in der Dateien-App und entpacke sie.</li><li>Wähle hier die Datei <b>export.xml</b> aus.</li></ol>
+  <p class="tiny muted">FitAI Buddy liest daraus u. a. Schritte, Schlaf, aktive Energie, Geh-/Laufdistanz, Herzfrequenz, Trainingszeit und Workouts. Die Rohdatei wird nicht hochgeladen.</p>
+</div></div>
+<div id="planModal" class="modal" onclick="if(event.target===this)closeModal('planModal')">
+<div class="sheet"><div class="section-title"><h2>Neuer Trainingsplan</h2><button class="secondary" onclick="closeModal('planModal')">✕</button></div><br>
+<label>Planname</label><input id="planName" placeholder="z. B. Push A">
+<br><br><label>Übungen</label><div id="planExerciseChecks"></div>
+<br><button class="full" onclick="createPlan()">Plan erstellen</button></div></div>
+
+<div id="exerciseModal" class="modal" onclick="if(event.target===this)closeModal('exerciseModal')">
+<div class="sheet"><div class="section-title"><h2>Übung hinzufügen</h2><button class="secondary" onclick="closeModal('exerciseModal')">✕</button></div><br>
+<label>Name</label><input id="newExerciseName" placeholder="z. B. Bankdrücken">
+<br><br><label>Muskelgruppe</label><select id="newExerciseMuscle"><option>Brust</option><option>Rücken</option><option>Schulter</option><option>Beine</option><option>Bizeps</option><option>Trizeps</option><option>Bauch</option><option>Ganzkörper</option></select>
+<br><br><button class="full" onclick="createExercise()">Übung speichern</button></div></div>
+
+<div id="foodModal" class="modal" onclick="if(event.target===this)closeModal('foodModal')">
+<div class="sheet"><div class="section-title"><h2>Lebensmittel</h2><button class="secondary" onclick="closeModal('foodModal')">✕</button></div><br>
+<label>Lebensmittel / Mahlzeit</label><input id="mFoodName" placeholder="z. B. Hähnchen mit Reis">
+<br><br><div class="formgrid3">
+<div><label>kcal</label><input id="mCal" type="number"></div>
+<div><label>Protein g</label><input id="mP" type="number"></div>
+<div><label>KH g</label><input id="mC" type="number"></div>
+</div><br><label>Fett g</label><input id="mF" type="number">
+<br><br><label>Mahlzeit</label><select id="mMeal"><option>Frühstück</option><option>Mittagessen</option><option>Abendessen</option><option>Snack</option></select>
+<br><br><button class="full" onclick="createFood()">Speichern</button></div></div>
+
+<div id="setModal" class="modal" onclick="if(event.target===this)closeModal('setModal')">
+<div class="sheet"><div class="section-title"><h2>Satz protokollieren</h2><button class="secondary" onclick="closeModal('setModal')">✕</button></div><br>
+<label>Übung</label><select id="setExercise"></select><br><br>
+<div class="formgrid3"><div><label>Gewicht kg</label><input id="setW" type="number" step="0.5"></div><div><label>Wdh.</label><input id="setR" type="number"></div><div><label>RIR</label><input id="setRir" type="number" min="0" max="5"></div></div>
+<br><button class="full" onclick="saveSet()">Satz speichern</button></div></div>
+
+<div id="exerciseDetailModal" class="modal" onclick="if(event.target===this)closeModal('exerciseDetailModal')">
+<div class="sheet" id="exerciseDetailSheet"></div></div>
+
+<div id="toast" class="toast"></div>
+
 <script>
-function go(id,el){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');window.scrollTo(0,0)}
-document.getElementById('photo').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let u=URL.createObjectURL(f);let p=document.getElementById('preview');p.src=u;p.style.display='block';document.getElementById('analysis').style.display='block'});
-function coach(){let q=document.getElementById('q').value.toLowerCase();let a=q.includes('protein')?'Dir fehlen heute ungefähr 48 g Protein bis zu deinem aktuellen Tagesziel.':q.includes('bank')?'Deine Bankdrückleistung liegt aktuell über deinem früheren Wert. Für die nächste Einheit würde ich die tatsächliche RIR-Entwicklung berücksichtigen.':'Ich würde dafür deine letzten Trainingsdaten, Ernährung und Regeneration gemeinsam analysieren. Im nächsten Schritt verbinden wir den echten AI-Backend-Coach.';document.getElementById('answer').textContent=a}
+const KEY='fitai_accounts_v3';
+let accounts=JSON.parse(localStorage.getItem(KEY)||'{}');
+let currentId=localStorage.getItem('fitai_current')||null;
+let workoutStarted=false, workoutStart=0, timerInterval=null;
+
+const defaultExercises=[
+ {id:'bench',name:'Bankdrücken',muscle:'Brust'},
+ {id:'incline',name:'Schrägbankdrücken',muscle:'Brust'},
+ {id:'dbpress',name:'Kurzhanteldrücken',muscle:'Brust'},
+ {id:'butterfly',name:'Butterfly (Maschine)',muscle:'Brust'},
+ {id:'pushup',name:'Liegestütze',muscle:'Brust'},
+ {id:'dips',name:'Dips',muscle:'Brust / Trizeps'},
+ {id:'lat',name:'Latziehen',muscle:'Rücken'},
+ {id:'row',name:'Rudern sitzend',muscle:'Rücken'},
+ {id:'pullup',name:'Klimmzüge',muscle:'Rücken'},
+ {id:'facepull',name:'Face Pulls',muscle:'Rücken / Schulter'},
+ {id:'ohp',name:'Schulterdrücken',muscle:'Schulter'},
+ {id:'lateral',name:'Seitheben',muscle:'Schulter'},
+ {id:'rear',name:'Reverse Fly',muscle:'Schulter / hintere Schulter'},
+ {id:'squat',name:'Kniebeugen',muscle:'Beine'},
+ {id:'legpress',name:'Beinpresse',muscle:'Beine'},
+ {id:'rdl',name:'Rumänisches Kreuzheben',muscle:'Beine / hintere Kette'},
+ {id:'legcurl',name:'Beinbeuger',muscle:'Beine'},
+ {id:'legext',name:'Beinstrecker',muscle:'Beine'},
+ {id:'calf',name:'Wadenheben',muscle:'Waden'},
+ {id:'curl',name:'Bizepscurls',muscle:'Bizeps'},
+ {id:'hammer',name:'Hammercurls',muscle:'Bizeps'},
+ {id:'pushdown',name:'Trizepsdrücken am Kabel',muscle:'Trizeps'},
+ {id:'overhead',name:'Trizepsdrücken über Kopf',muscle:'Trizeps'},
+ {id:'crunch',name:'Crunches',muscle:'Bauch'},
+ {id:'legraise',name:'Beinheben',muscle:'Bauch'}
+];
+
+const TRAINING_LIBRARY={
+ 'Brust':{
+  image:'assets/group_chest.png',desc:'Drück- und Isolationsübungen für die Brustmuskulatur.',
+  exercises:['bench','incline','dbpress','butterfly','pushup','dips']
+ },
+ 'Rücken':{
+  image:'assets/group_back.png',desc:'Übungen für Lat, oberen Rücken und Rückenstrecker.',
+  exercises:['lat','row','pullup','facepull']
+ },
+ 'Schulter':{
+  image:'assets/group_shoulders.png',desc:'Vordere, seitliche und hintere Schulter gezielt trainieren.',
+  exercises:['ohp','lateral','rear','facepull']
+ },
+ 'Arme':{
+  image:'assets/group_arms.png',desc:'Bizeps und Trizeps mit freien Gewichten und Kabeln.',
+  exercises:['curl','hammer','pushdown','overhead','dips']
+ },
+ 'Beine':{
+  image:'assets/group_legs.png',desc:'Quadrizeps, Beinbeuger, Gesäß und Waden.',
+  exercises:['squat','legpress','rdl','legcurl','legext','calf']
+ },
+ 'Bauch':{
+  image:'assets/group_abs.png',desc:'Core-Übungen für Bauch und Rumpfstabilität.',
+  exercises:['crunch','legraise']
+ }
+};
+const EXERCISE_META={
+ bench:{image:'assets/bench_press.png',desc:'Klassische Grundübung für die Brust. Kontrollierte Bewegung und stabile Schulterblätter.',equipment:'Langhantel',muscles:['Großer Brustmuskel','Vorderer Schulterkopf','Trizeps'],steps:['Auf die Bank legen und die Schulterblätter nach hinten unten ziehen.','Stange etwas weiter als schulterbreit greifen.','Kontrolliert zur Brust absenken.','Kraftvoll nach oben drücken, ohne die Spannung zu verlieren.']},
+ incline:{image:'assets/incline_press.png',desc:'Schrägbankdrücken betont besonders den oberen Brustbereich.',equipment:'Langhantel',muscles:['Oberer Brustbereich','Vordere Schulter','Trizeps'],steps:['Bank auf einen moderaten Winkel einstellen.','Schulterblätter stabilisieren und Füße fest aufstellen.','Stange kontrolliert zum oberen Brustbereich führen.','Ohne Schwung nach oben drücken.']},
+ dbpress:{image:'assets/db_press.png',desc:'Kurzhanteldrücken erlaubt eine freie Bewegung der Arme und einen großen Bewegungsumfang.',equipment:'Kurzhanteln',muscles:['Brust','Vordere Schulter','Trizeps'],steps:['Kurzhanteln auf Brusthöhe positionieren.','Handgelenke stabil halten.','Hanteln kontrolliert absenken.','Nach oben drücken und die Brust aktiv anspannen.']},
+ butterfly:{image:'assets/butterfly.png',desc:'Isolationsübung für die Brust mit konstantem Widerstand.',equipment:'Maschine',muscles:['Brust'],steps:['Sitz und Griffhöhe passend einstellen.','Brustkorb aufrecht halten.','Arme kontrolliert zusammenführen.','Langsam in die Ausgangsposition zurückkehren.']},
+ pushup:{image:'assets/pushup.png',desc:'Körpergewichtsübung für Brust, Trizeps und Schulter.',equipment:'Körpergewicht',muscles:['Brust','Trizeps','Schulter'],steps:['Hände etwa schulterbreit aufsetzen.','Körper in einer geraden Linie halten.','Brust kontrolliert Richtung Boden absenken.','Kraftvoll zurück in die Ausgangsposition drücken.']},
+ dips:{image:'assets/dips.png',desc:'Dips trainieren vor allem Trizeps und Brust.',equipment:'Körpergewicht',muscles:['Trizeps','Brust','Vordere Schulter'],steps:['Stabil in die Dip-Position kommen.','Ellenbogen kontrolliert beugen.','Nur so tief gehen, wie die Schulterbeweglichkeit es erlaubt.','Kraftvoll nach oben drücken.']},
+ lat:{image:'assets/bench_press.png',desc:'Latziehen für den großen Rückenmuskel und die vertikale Zugbewegung.',equipment:'Kabelzug',muscles:['Latissimus','Bizeps','Oberer Rücken'],steps:['Stange etwas weiter als schulterbreit greifen.','Brust leicht anheben und Schultern tief halten.','Stange kontrolliert zur oberen Brust ziehen.','Langsam wieder nach oben führen.']},
+ row:{image:'assets/incline_press.png',desc:'Rudern baut Zugkraft und Rückendicke auf.',equipment:'Kabelzug',muscles:['Latissimus','Rhomboiden','Hintere Schulter'],steps:['Rücken neutral halten.','Griff Richtung Bauchnabel ziehen.','Schulterblätter zusammenführen.','Kontrolliert strecken.']},
+ pullup:{image:'assets/pushup.png',desc:'Klimmzüge sind eine anspruchsvolle Eigengewichtsübung für den Rücken.',equipment:'Klimmzugstange',muscles:['Latissimus','Bizeps','Oberer Rücken'],steps:['Stange fest greifen.','Schultern aktiv nach unten ziehen.','Körper nach oben ziehen, bis das Kinn die Stange erreicht.','Kontrolliert ablassen.']},
+ facepull:{image:'assets/lateral_raise.png',desc:'Face Pulls stärken hintere Schulter und oberen Rücken.',equipment:'Kabelzug',muscles:['Hintere Schulter','Trapez','Rhomboiden'],steps:['Seil auf Gesichtshöhe einstellen.','Seil Richtung Gesicht ziehen.','Ellenbogen weit außen führen.','Langsam zurücklassen.']},
+ ohp:{image:'assets/shoulder_press.png',desc:'Schulterdrücken für Kraft und Muskelaufbau der Schulter.',equipment:'Kurzhanteln / Maschine',muscles:['Schulter','Trizeps'],steps:['Gewichte auf Schulterhöhe starten.','Rumpf stabil halten.','Gewichte kontrolliert über Kopf drücken.','Nicht ins Hohlkreuz ausweichen.']},
+ lateral:{image:'assets/lateral_raise.png',desc:'Seitheben trifft besonders die seitliche Schulter.',equipment:'Kurzhanteln',muscles:['Seitliche Schulter'],steps:['Arme leicht beugen.','Gewichte seitlich bis etwa Schulterhöhe heben.','Nicht aus dem Schwung arbeiten.','Langsam absenken.']},
+ rear:{image:'assets/lateral_raise.png',desc:'Reverse Fly für die hintere Schulter und Schulterblattkontrolle.',equipment:'Kurzhanteln / Maschine',muscles:['Hintere Schulter','Oberer Rücken'],steps:['Oberkörper leicht nach vorne neigen.','Arme seitlich nach hinten führen.','Schulterblätter kontrolliert bewegen.','Langsam absenken.']},
+ squat:{image:'assets/group_legs.png',desc:'Kniebeugen sind eine zentrale Mehrgelenksübung für die Beine.',equipment:'Langhantel',muscles:['Quadrizeps','Gesäß','Beinbeuger'],steps:['Füße etwa schulterbreit aufstellen.','Rumpf anspannen und Knie über die Fußrichtung führen.','Kontrolliert absenken.','Aus dem ganzen Fuß nach oben drücken.']},
+ legpress:{image:'assets/group_legs.png',desc:'Beinpresse ermöglicht hohe Lasten mit stabiler Körperposition.',equipment:'Beinpresse',muscles:['Quadrizeps','Gesäß','Beinbeuger'],steps:['Rücken vollständig an die Lehne drücken.','Füße stabil auf der Plattform platzieren.','Gewicht kontrolliert absenken.','Kraftvoll zurückdrücken, ohne die Knie zu verriegeln.']},
+ rdl:{image:'assets/group_legs.png',desc:'Rumänisches Kreuzheben für hintere Kette und Hüftstreckung.',equipment:'Langhantel / Kurzhanteln',muscles:['Beinbeuger','Gesäß','Rückenstrecker'],steps:['Knie leicht beugen.','Hüfte nach hinten schieben und Rücken neutral halten.','Gewicht nah am Körper führen.','Hüfte aktiv nach vorne strecken.']},
+ legcurl:{image:'assets/group_legs.png',desc:'Beinbeuger-Maschine isoliert die hintere Oberschenkelmuskulatur.',equipment:'Maschine',muscles:['Beinbeuger'],steps:['Polster korrekt einstellen.','Ferse kontrolliert Richtung Gesäß ziehen.','Oben kurz Spannung halten.','Langsam strecken.']},
+ legext:{image:'assets/group_legs.png',desc:'Beinstrecker isoliert den Quadrizeps.',equipment:'Maschine',muscles:['Quadrizeps'],steps:['Sitz und Polster einstellen.','Unterschenkel kontrolliert nach oben strecken.','Oben kurz halten.','Langsam absenken.']},
+ calf:{image:'assets/group_legs.png',desc:'Wadenheben trainiert die Plantarflexion und Wadenmuskulatur.',equipment:'Maschine / Beinpresse',muscles:['Waden'],steps:['Fußballen stabil auf der Plattform positionieren.','Fersen kontrolliert absenken.','Über den Fußballen nach oben drücken.','Oben kurz halten.']},
+ curl:{image:'assets/shoulder_press.png',desc:'Bizepscurls für direkten Bizepsreiz.',equipment:'Kurzhanteln / Langhantel',muscles:['Bizeps'],steps:['Ellenbogen nah am Körper halten.','Hantel ohne Schwung nach oben curlen.','Oben kurz anspannen.','Kontrolliert absenken.']},
+ hammer:{image:'assets/shoulder_press.png',desc:'Hammercurls trainieren Bizeps und Brachialis.',equipment:'Kurzhanteln',muscles:['Bizeps','Brachialis'],steps:['Neutralen Griff halten.','Ellenbogen ruhig halten.','Hanteln kontrolliert nach oben führen.','Langsam absenken.']},
+ pushdown:{image:'assets/tricep_pushdown.png',desc:'Trizepsdrücken am Kabel für einen direkten Trizepsreiz.',equipment:'Kabelzug',muscles:['Trizeps'],steps:['Ellenbogen dicht am Körper halten.','Griff nach unten drücken.','Unten kurz strecken und anspannen.','Kontrolliert zurückführen.']},
+ overhead:{image:'assets/tricep_pushdown.png',desc:'Überkopfdrücken trainiert den Trizeps über einen großen Bewegungsumfang.',equipment:'Kabelzug / Kurzhantel',muscles:['Trizeps'],steps:['Oberarme stabil halten.','Gewicht hinter den Kopf absenken.','Trizeps kontrolliert strecken.','Langsam zurückführen.']},
+ crunch:{image:'assets/group_abs.png',desc:'Crunches trainieren die Bauchmuskulatur mit kontrollierter Wirbelsäulenbeugung.',equipment:'Körpergewicht',muscles:['Bauch'],steps:['Rücken bequem ablegen und Bauch anspannen.','Schultern kontrolliert vom Boden lösen.','Bauch aktiv zusammenziehen.','Langsam ablegen.']},
+ legraise:{image:'assets/group_abs.png',desc:'Beinheben beansprucht besonders den unteren Bauchbereich und die Hüftbeuger.',equipment:'Körpergewicht',muscles:['Bauch','Hüftbeuger'],steps:['Beine kontrolliert starten lassen.','Beine ohne Schwung anheben.','Becken leicht einrollen.','Langsam absenken.']}
+};
+let trainingMode='groups',selectedMuscle=null,trainingSearch='',equipmentFilter='Alle',favoriteOnly=false;
+
+function ensureExerciseMetadata(){
+ const u=getUser();if(!u)return;
+ let changed=false;
+ const library=Object.values(TRAINING_LIBRARY).flatMap(x=>x.exercises);
+ for(const id of library){
+  if(!u.exercises.some(e=>e.id===id)){const d=defaultExercises.find(e=>e.id===id);if(d){u.exercises.push({...d});changed=true}}
+ }
+ if(changed)saveAccounts();
+}
+function exerciseById(id){return getUser().exercises.find(e=>e.id===id)||defaultExercises.find(e=>e.id===id)}
+function exerciseImage(id){return EXERCISE_META[id]?.image||'assets/group_chest.png'}
+function exerciseDescription(id){return EXERCISE_META[id]?.desc||'Kraftübung mit kontrollierter Ausführung.'}
+function setTrainingMode(mode){trainingMode=mode;selectedMuscle=null;document.querySelectorAll('.training-tab').forEach(b=>b.classList.toggle('active',b.dataset.tmode===mode));renderTrainingBrowser()}
+function selectMuscle(name){selectedMuscle=name;trainingMode='muscle';document.querySelectorAll('.training-tab').forEach(b=>b.classList.remove('active'));renderTrainingBrowser()}
+function renderTrainingBrowser(){
+ const el=document.getElementById('trainingBrowser');if(!el)return;ensureExerciseMetadata();
+ const tools=`<div class="training-tools"><input class="training-search" placeholder="🔎 Übung suchen..." value="${esc(trainingSearch)}" oninput="trainingSearch=this.value;renderTrainingBrowser()"><button class="filter-chip ${equipmentFilter==='Alle'?'active':''}" onclick="setEquipmentFilter('Alle')">Alle</button><button class="filter-chip ${equipmentFilter==='Langhantel'?'active':''}" onclick="setEquipmentFilter('Langhantel')">Langhantel</button><button class="filter-chip ${equipmentFilter==='Kurzhanteln'?'active':''}" onclick="setEquipmentFilter('Kurzhanteln')">Kurzhantel</button><button class="filter-chip ${equipmentFilter==='Maschine'?'active':''}" onclick="setEquipmentFilter('Maschine')">Maschine</button><button class="filter-chip ${equipmentFilter==='Kabelzug'?'active':''}" onclick="setEquipmentFilter('Kabelzug')">Kabel</button><button class="filter-chip ${favoriteOnly?'active':''}" onclick="favoriteOnly=!favoriteOnly;renderTrainingBrowser()">⭐ Favoriten</button></div>`;
+ if(trainingMode==='groups'){
+  const groups=Object.entries(TRAINING_LIBRARY).filter(([name,g])=>(!trainingSearch||name.toLowerCase().includes(trainingSearch.toLowerCase())||g.desc.toLowerCase().includes(trainingSearch.toLowerCase())));
+  el.innerHTML=`<div class="card"><div class="section-title"><div><h3>Muskelgruppen</h3><span class="muted small">Wähle eine Muskelgruppe und entdecke passende Übungen.</span></div></div>${tools}<div class="muscle-grid" style="margin-top:13px">${groups.map(([name,g])=>`<div class="muscle-card" onclick="selectMuscle('${name}')"><img src="${g.image}" alt="${name}"><div class="mc-copy"><b>${name}</b><span>${g.exercises.length} Übungen · ansehen →</span></div></div>`).join('')}</div></div>`;
+ } else if(trainingMode==='muscle'){
+  const g=TRAINING_LIBRARY[selectedMuscle];
+  let ex=g.exercises.map(exerciseById).filter(Boolean);
+  ex=ex.filter(e=>{const m=EXERCISE_META[e.id]||{};const q=trainingSearch.toLowerCase();return (!q||e.name.toLowerCase().includes(q)||e.muscle.toLowerCase().includes(q)||exerciseDescription(e.id).toLowerCase().includes(q))&& (equipmentFilter==='Alle'||(m.equipment||'').toLowerCase().includes(equipmentFilter.toLowerCase().replace('kurzhanteln','kurzhantel').replace('kabelzug','kabel')))&&( !favoriteOnly || !!e.favorite)});
+  el.innerHTML=`<div class="section-title" style="margin:8px 0"><button class="back-link" onclick="setTrainingMode('groups')">‹ Muskelgruppen</button><span class="pill">${ex.length} Übungen</span></div><div class="card"><div style="display:flex;gap:14px;align-items:center"><img src="${g.image}" style="width:92px;height:92px;border-radius:14px;object-fit:cover"><div><h2 style="margin:0 0 5px">${selectedMuscle}</h2><p class="muted small" style="margin:0">${g.desc}</p></div></div></div>${tools}<div class="library-head"><h3>Übungen</h3><span class="library-count">Foto · Anleitung · Historie</span></div><div class="exercise-library">${ex.length?ex.map(e=>exerciseCard(e)).join(''):'<div class="empty-state">Keine Übung passt zu deinem Filter.</div>'}</div>`;
+ } else if(trainingMode==='all'){
+  let ex=getUser().exercises;ex=ex.filter(e=>{const m=EXERCISE_META[e.id]||{};const q=trainingSearch.toLowerCase();return (!q||e.name.toLowerCase().includes(q)||e.muscle.toLowerCase().includes(q))&&(equipmentFilter==='Alle'||(m.equipment||'').toLowerCase().includes(equipmentFilter.toLowerCase().replace('kurzhanteln','kurzhantel').replace('kabelzug','kabel')))&&(!favoriteOnly||!!e.favorite)});
+  el.innerHTML=`<div class="card"><div class="library-head" style="margin-top:0"><h3>📚 Übungsbibliothek</h3><span class="library-count">${ex.length} Übungen</span></div>${tools}<div class="exercise-library">${ex.length?ex.map(e=>exerciseCard(e)).join(''):'<div class="empty-state">Keine Übung gefunden.</div>'}</div></div>`;
+ } else if(trainingMode==='plans'){
+  const u=getUser();el.innerHTML=`<div class="card"><div class="section-title"><h3>Meine Trainingspläne</h3><button class="secondary" onclick="openModal('planModal')">+ Plan</button></div>${u.plans.length?u.plans.slice().reverse().map(p=>`<div class="row"><div class="row-main"><b>${esc(p.name)}</b><span class="muted small">${p.exercises.length} Übungen</span></div><button class="secondary" onclick="activatePlan('${p.id}')">Auswählen</button></div>`).join(''):'<div class="empty">Noch kein Plan vorhanden.</div>'}</div>`;
+ } else if(trainingMode==='history'){
+  const u=getUser();const rows=u.workouts.slice().reverse();el.innerHTML=`<div class="card"><div class="section-title"><h3>📜 Komplette Trainingshistorie</h3><span class="library-count">${rows.length} Workouts</span></div><div class="quick-stat"><span>Workouts</span><b>${rows.length}</b></div><div class="quick-stat"><span>Gesamte Sätze</span><b>${rows.reduce((a,w)=>a+(w.sets||0),0)}</b></div>${rows.length?rows.map(w=>`<div class="row"><div class="row-main"><b>${esc(w.plan||'Workout')}</b><span class="muted small">${new Date(w.date).toLocaleString('de-DE')} · ${w.sets} Sätze</span></div><span class="pill">✓ gespeichert</span></div>`).join(''):'<div class="empty">Noch keine abgeschlossenen Workouts.</div>'}</div>`;
+ }
+}
+function setEquipmentFilter(v){equipmentFilter=v;renderTrainingBrowser()}
+function toggleFavorite(id){const e=exerciseById(id);if(!e)return;e.favorite=!e.favorite;persist();renderTrainingBrowser();toast(e.favorite?'⭐ Zu Favoriten hinzugefügt':'Aus Favoriten entfernt')}
+function exerciseCard(e){const m=EXERCISE_META[e.id]||{};return `<div class="library-card" onclick="openExerciseDetail('${e.id}')"><img src="${exerciseImage(e.id)}" alt="${esc(e.name)}"><div><h3>${esc(e.name)}</h3><p>${esc(e.muscle)}</p><div class="exercise-meta-line"><span>${esc(m.equipment||'Krafttraining')}</span><span>${(m.muscles||[]).length} Muskeln</span></div></div><button class="fav-btn ${e.favorite?'active':''}" onclick="event.stopPropagation();toggleFavorite('${e.id}')">${e.favorite?'★':'☆'}</button></div>`}
+function openExerciseDetail(id){const e=exerciseById(id),m=EXERCISE_META[id]||{};if(!e)return;const sets=getUser().workouts.flatMap(w=>(w.entries||[]).map(s=>({...s,date:w.date,plan:w.plan}))).filter(s=>s.exerciseId===id).reverse();const max=sets.length?Math.max(...sets.map(s=>Number(s.weight)||0)):0;const volume=sets.reduce((a,s)=>a+(Number(s.weight)||0)*(Number(s.reps)||0),0);const group=Object.entries(TRAINING_LIBRARY).find(([n,g])=>g.exercises.includes(id));document.getElementById('exerciseDetailSheet').innerHTML=`<div class="section-title"><button class="back-link" onclick="closeModal('exerciseDetailModal')">‹ Training</button><div style="display:flex;gap:7px"><button class="fav-btn ${e.favorite?'active':''}" onclick="toggleFavorite('${id}');openExerciseDetail('${id}')">${e.favorite?'★':'☆'}</button><button class="secondary" onclick="openSetFor('${id}');closeModal('exerciseDetailModal')">+ Satz</button></div></div><br><div class="exercise-hero"><div class="exercise-hero-media"><img src="${exerciseImage(id)}" alt="${esc(e.name)}"></div><div class="exercise-hero-body"><h2>${esc(e.name)}</h2><div class="tag-row"><span class="pill">${esc(e.muscle)}</span><span class="pill">${esc(m.equipment||'Krafttraining')}</span></div><p>${esc(exerciseDescription(id))}</p><div class="stat-grid"><div class="stat-box"><span class="muted tiny">BESTES GEWICHT</span><b>${max?max+' kg':'–'}</b></div><div class="stat-box"><span class="muted tiny">SÄTZE GESAMT</span><b>${sets.length}</b></div><div class="stat-box"><span class="muted tiny">VOLUMEN</span><b>${volume?Math.round(volume).toLocaleString('de-DE')+' kg':'–'}</b></div></div></div></div><div class="card"><h3>📖 Kurze Ausführung</h3>${(m.steps||[]).map((x,i)=>`<div class="instruction"><span class="instruction-num">${i+1}</span><span>${esc(x)}</span></div>`).join('')}</div><div class="card"><h3>💪 Trainierte Muskeln</h3><div class="anatomy-grid"><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Hauptmuskel</b><div class="muted small">${esc((m.muscles||[e.muscle])[0])}</div></div><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Nebenmuskeln</b><div class="muted small">${esc((m.muscles||[e.muscle]).slice(1).join(' · ')||'–')}</div></div></div></div><div class="card"><div class="section-title"><h3>📈 Deine komplette Historie</h3><span class="library-count">${sets.length} Einträge</span></div>${sets.length?`<div class="history-table"><table><thead><tr><th>Datum</th><th>Plan</th><th>Gewicht</th><th>Wdh.</th><th>RIR</th></tr></thead><tbody>${sets.map(s=>`<tr><td>${new Date(s.date).toLocaleDateString('de-DE')}</td><td>${esc(s.plan||'Workout')}</td><td>${s.weight} kg</td><td>${s.reps}</td><td>${s.rir}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Noch keine Daten. Protokolliere den ersten Satz und deine Historie baut sich automatisch auf.</div>'}</div>`;openModal('exerciseDetailModal')}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function getUser(){return currentId?accounts[currentId]:null}
+function saveAccounts(){localStorage.setItem(KEY,JSON.stringify(accounts))}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.style.display='none',2200)}
+function showLogin(){
+ document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';populateUsers()
+}
+function showRegister(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block'}
+function populateUsers(){
+ const s=document.getElementById('loginUser');s.innerHTML='';
+ Object.values(accounts).forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=u.name;s.appendChild(o)})
+ if(!Object.keys(accounts).length){s.innerHTML='<option>Keine Profile vorhanden</option>'}
+}
+function register(){
+ const name=document.getElementById('regName').value.trim(),pin=document.getElementById('regPin').value.trim();
+ if(name.length<2){toast('Bitte einen Namen eingeben.');return}
+ if(!/^\d{4,6}$/.test(pin)){toast('PIN muss 4–6 Ziffern haben.');return}
+ const id=uid();
+ accounts[id]={id,name,pin,profile:{name,age:21,height:175,weight:95.8,sex:'male',activity:1.55,goal:'lose',cal:2600,p:190,c:280,f:75},weights:[{date:new Date().toISOString(),weight:95.8,note:'Start'}],foods:[],exercises:structuredClone(defaultExercises),plans:[],workouts:[]};
+ saveAccounts();currentId=id;localStorage.setItem('fitai_current',id);enterApp();toast('Profil erstellt 🎉')
+}
+function login(){
+ const id=document.getElementById('loginUser').value,pin=document.getElementById('loginPin').value;
+ const u=accounts[id];if(!u){toast('Kein Profil vorhanden.');return}
+ if(u.pin!==pin){toast('PIN ist falsch.');return}
+ currentId=id;localStorage.setItem('fitai_current',id);enterApp()
+}
+function logout(){currentId=null;localStorage.removeItem('fitai_current');document.getElementById('loginScreen').classList.add('show');showLogin()}
+function enterApp(){document.getElementById('loginScreen').classList.remove('show');document.getElementById('loginPin').value='';renderAll()}
+function ensureProfile(){const u=getUser();return u&&u.profile}
+function profile(){return getUser().profile}
+function persist(){accounts[currentId]=getUser();saveAccounts();renderAll()}
+
+function go(id,el){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+ const b=el||document.querySelector(`.nav button[data-page="${id}"]`);if(b)b.classList.add('active');
+ window.scrollTo(0,0);
+ if(id==='training')renderTraining();
+ if(id==='health')renderHealth();
+ if(id==='nutrition')renderNutrition();
+ if(id==='progress')renderProgress();
+}
+let healthData=JSON.parse(localStorage.getItem('fitai_health')||'null');
+
+function openHealthImport(){document.getElementById('healthImportModal').classList.add('show')}
+function showHealthHelp(){openHealthImport()}
+function clearHealthData(){if(confirm('Importierte Health-Daten wirklich löschen?')){healthData=null;localStorage.removeItem('fitai_health');renderHealth();toast('Health-Daten gelöscht')}}
+function startOfToday(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
+function isTodayRange(start,end){const s=new Date(start),e=end?new Date(end):s,t=startOfToday(),tomorrow=new Date(t);tomorrow.setDate(tomorrow.getDate()+1);return s<tomorrow&&e>=t}
+function durationHours(a,b){return Math.max(0,(new Date(b)-new Date(a))/3600000)}
+function prettyWorkoutName(name){return String(name||'').replace(/^HKWorkoutActivityType/,'').replace(/([a-z])([A-Z])/g,'$1 $2')||'Workout'}
+function normalizeHealthPayload(data){if(!data)return null;if(data.fitaiHealth)return normalizeHealthPayload(data.fitaiHealth);if(Array.isArray(data.records))return parseGenericHealthRecords(data.records,data.workouts||[]);const out={...data};out.updatedAt=Date.now();out.workouts=Array.isArray(out.workouts)?out.workouts:[];if(out.steps==null&&out.stepCount!=null)out.steps=out.stepCount;if(out.sleepHours==null&&out.sleep!=null)out.sleepHours=Number(out.sleep);return out}
+function parseGenericHealthRecords(records,workoutRecords=[]){let steps=0,activeCalories=0,distanceKm=0,exerciseMinutes=0,hrSum=0,hrCount=0,sleepMs=0;const workouts=[];for(const r of records){const type=String(r.type||r.identifier||''),start=r.start||r.startDate||r.date,end=r.end||r.endDate||r.date;if(!start||!isTodayRange(start,end))continue;const v=Number(r.value)||0;if(/StepCount/i.test(type))steps+=v;else if(/ActiveEnergyBurned|ActiveEnergy/i.test(type))activeCalories+=v;else if(/DistanceWalkingRunning/i.test(type))distanceKm+=v/1000;else if(/AppleExerciseTime|ExerciseTime/i.test(type))exerciseMinutes+=v;else if(/HeartRate/i.test(type)){hrSum+=v;hrCount++}else if(/SleepAnalysis|Sleep/i.test(type)&&end&&start)sleepMs+=Math.max(0,new Date(end)-new Date(start))}for(const w of workoutRecords){const start=w.start||w.startDate,end=w.end||w.endDate;if(start&&isTodayRange(start,end||start))workouts.push({name:prettyWorkoutName(w.name||w.activityType),date:start,durationMin:Math.round(durationHours(start,end||start)*60),calories:Number(w.calories||w.totalEnergyBurned||0),source:w.source||'Apple Watch'})}return{steps:Math.round(steps),activeCalories:Math.round(activeCalories),distanceKm:Number(distanceKm.toFixed(2)),exerciseMinutes:Math.round(exerciseMinutes),avgHeartRate:hrCount?Math.round(hrSum/hrCount):null,sleepHours:Number((sleepMs/3600000).toFixed(2)),workoutsToday:workouts.length,workouts,updatedAt:Date.now(),source:'Health-Import'}}
+function parseAppleHealthXML(text){const xml=new DOMParser().parseFromString(text,'application/xml');if(xml.querySelector('parsererror'))throw new Error('Die XML-Datei konnte nicht gelesen werden.');const records=[...xml.getElementsByTagName('Record')],workouts=[...xml.getElementsByTagName('Workout')];let steps=0,activeCalories=0,distanceKm=0,exerciseMinutes=0,hrSum=0,hrCount=0,sleepMs=0;const today=startOfToday(),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);for(const r of records){const type=r.getAttribute('type')||'',start=r.getAttribute('startDate'),end=r.getAttribute('endDate')||start;if(!start)continue;const s=new Date(start),e=new Date(end);if(s>=tomorrow||e<today)continue;const v=Number(r.getAttribute('value'))||0;if(type==='HKQuantityTypeIdentifierStepCount')steps+=v;else if(type==='HKQuantityTypeIdentifierActiveEnergyBurned')activeCalories+=v;else if(type==='HKQuantityTypeIdentifierDistanceWalkingRunning')distanceKm+=v/1000;else if(type==='HKQuantityTypeIdentifierAppleExerciseTime')exerciseMinutes+=v;else if(type==='HKQuantityTypeIdentifierHeartRate'){hrSum+=v;hrCount++}else if(type==='HKCategoryTypeIdentifierSleepAnalysis')sleepMs+=Math.max(0,e-s)}const ws=workouts.filter(w=>{const s=w.getAttribute('startDate'),e=w.getAttribute('endDate')||s;return s&&isTodayRange(s,e)}).map(w=>({name:prettyWorkoutName(w.getAttribute('workoutActivityType')),date:w.getAttribute('startDate'),durationMin:Math.round(durationHours(w.getAttribute('startDate'),w.getAttribute('endDate'))*60),calories:Number(w.getAttribute('totalEnergyBurned'))||0,source:w.getAttribute('sourceName')||'Apple Watch'}));return{steps:Math.round(steps),activeCalories:Math.round(activeCalories),distanceKm:Number(distanceKm.toFixed(2)),exerciseMinutes:Math.round(exerciseMinutes),avgHeartRate:hrCount?Math.round(hrSum/hrCount):null,sleepHours:Number((sleepMs/3600000).toFixed(2)),workoutsToday:ws.length,workouts:ws,updatedAt:Date.now(),source:'Apple Health export.xml'}}
+function parseHealthCSV(text){const lines=text.trim().split(/\\r?\\n/).filter(Boolean);if(lines.length<2)throw new Error('CSV enthält keine Daten.');const headers=lines.shift().split(',').map(x=>x.trim().toLowerCase());const records=lines.map(line=>{const cols=line.split(',');const o={};headers.forEach((h,i)=>o[h]=cols[i]?.trim());return o});return normalizeHealthPayload({records})}
+async function importHealthFile(event){const file=event.target.files?.[0];if(!file)return;try{const text=await file.text();let parsed;const ext=file.name.toLowerCase().split('.').pop();if(ext==='xml')parsed=parseAppleHealthXML(text);else if(ext==='json')parsed=normalizeHealthPayload(JSON.parse(text));else if(ext==='csv')parsed=parseHealthCSV(text);else throw new Error('Bitte export.xml, JSON oder CSV auswählen.');healthData=parsed;localStorage.setItem('fitai_health',JSON.stringify(healthData));renderHealth();toast('Health-Daten importiert ✓')}catch(err){console.error(err);alert('Import fehlgeschlagen: '+(err.message||err))}event.target.value=''}
+
+function connectAppleHealth(){
+  const bridge=window.webkit?.messageHandlers?.fitaiHealth;
+  if(bridge){
+    try{ bridge.postMessage({action:'requestHealthData'}); toast('Apple Health Berechtigung wird geöffnet…'); }catch(e){toast('HealthKit konnte nicht geöffnet werden.')} 
+  }else{
+    toast('HealthKit ist im Browser nicht verfügbar. Dafür braucht FitAI Buddy die native iPhone-App.');
+    renderHealth();
+  }
+}
+
+window.fitAIHealthData=function(data){
+  healthData=data||{};
+  localStorage.setItem('fitai_health',JSON.stringify(healthData));
+  renderHealth();
+  toast('Apple Health synchronisiert ✓');
+};
+
+function renderHealth(){
+  const d=healthData;
+  const has=!!d;
+  document.getElementById('healthSteps').textContent=has&&d.steps!=null?Number(d.steps).toLocaleString('de-DE'):'–';
+  document.getElementById('healthSleep').textContent=has&&d.sleepHours!=null?`${Number(d.sleepHours).toFixed(1).replace('.',',')} h`:'–';
+  document.getElementById('healthSleepDetail').textContent=has?(d.sleepQuality?d.sleepQuality:'letzte Nacht'):'heute Nacht';
+  document.getElementById('healthWorkouts').textContent=has&&d.workoutsToday!=null?String(d.workoutsToday):'–';
+  document.getElementById('healthCalories').textContent=has&&d.activeCalories!=null?`${Math.round(d.activeCalories).toLocaleString('de-DE')} kcal`:'–';
+  document.getElementById('healthUpdated').textContent=has&&d.updatedAt?`Sync ${new Date(d.updatedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:'Noch nicht synchronisiert';
+  const status=document.getElementById('healthStatus');
+  status.classList.toggle('health-ok',has);
+  if(has){
+    status.innerHTML=`<div class="section-title"><div><h3>✓ Health-Daten importiert</h3><p class="muted small" style="margin:4px 0 0">Quelle: ${esc(d.source||'Apple Health Export')} · lokal gespeichert</p></div><button class="secondary" onclick="openHealthImport()">Erneut importieren</button></div>`;
+  }
+  const details=document.getElementById('healthDetails');
+  if(!has){details.innerHTML='<div class="empty">Verbinde Apple Health, um weitere Daten wie Distanz, Herzfrequenz und Trainingsdetails anzuzeigen.</div>';document.getElementById('healthWorkoutList').innerHTML='<div class="empty">Noch keine Apple-Workouts synchronisiert.</div>';return;}
+  details.innerHTML=`<div class="health-detail-box"><span class="muted small">📅 Datenstand</span><b>${d.updatedAt?new Date(d.updatedAt).toLocaleDateString('de-DE'):'–'}</b></div><div class="health-detail-box"><span class="muted small">🚶 Distanz</span><b>${d.distanceKm!=null?Number(d.distanceKm).toFixed(1).replace('.',',')+' km':'–'}</b></div><div class="health-detail-box"><span class="muted small">❤️ Ø Herzfrequenz</span><b>${d.avgHeartRate!=null?Math.round(d.avgHeartRate)+' bpm':'–'}</b></div><div class="health-detail-box"><span class="muted small">🧍 Stehstunden</span><b>${d.standHours!=null?d.standHours+' h':'–'}</b></div><div class="health-detail-box"><span class="muted small">⚡ Bewegungsenergie</span><b>${d.exerciseMinutes!=null?d.exerciseMinutes+' min':'–'}</b></div>`;
+  const workouts=Array.isArray(d.workouts)?d.workouts:[];
+  document.getElementById('healthWorkoutList').innerHTML=workouts.length?workouts.slice(0,10).map(w=>`<div class="health-workout"><div><b>${esc(w.name||'Workout')}</b><div class="health-source">${w.date?new Date(w.date).toLocaleString('de-DE'):''} · ${w.durationMin||0} min</div></div><div style="text-align:right"><b>${w.calories!=null?Math.round(w.calories)+' kcal':'–'}</b><div class="health-source">${w.source||'Apple Watch'}</div></div></div>`).join(''):'<div class="empty">Keine Workouts für heute gefunden.</div>';
+}
+
+function openModal(id){document.getElementById(id).classList.add('show');if(id==='planModal')renderPlanChecks();if(id==='setModal')renderSetExerciseSelect()}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+
+function renderAll(){
+ if(!getUser())return;
+ const u=getUser(),p=u.profile,t=totals();
+ document.getElementById('avatarText').textContent=(p.name||'F').charAt(0).toUpperCase();
+ document.getElementById('hello').textContent='Hallo '+(p.name||'')+' 👋';
+ document.getElementById('homeGoalText').textContent=goalText(p.goal);
+ document.getElementById('homeWeight').textContent=p.weight.toFixed(1).replace('.',',')+' kg';
+ document.getElementById('progressWeight').textContent=p.weight.toFixed(1).replace('.',',')+' kg';
+ document.getElementById('weightTrend').textContent=weightTrend();
+ document.getElementById('homeCalories').textContent=Math.round(t.cal).toLocaleString('de-DE');
+ document.getElementById('homeCaloriesGoal').textContent='von '+p.cal.toLocaleString('de-DE')+' kcal';
+ document.getElementById('homeProtein').textContent=Math.round(t.p)+' g';
+ document.getElementById('homeProteinGoal').textContent='von '+p.p+' g';
+ document.getElementById('profileNamePill').textContent=p.name;
+ document.getElementById('mealDate').textContent=new Date().toLocaleDateString('de-DE');
+ document.getElementById('datePill').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit'}).toUpperCase();
+ const last=latestPlan();
+ document.getElementById('todayWorkout').textContent=last?last.name:'Kein Training geplant';
+ document.getElementById('todayWorkoutPill').textContent=last?'TRAININGSPLAN':'START';
+ document.getElementById('todayWorkoutText').textContent=last?`${last.exercises.length} Übungen · individuell anpassbar`:'Erstelle deinen ersten Trainingsplan im Training-Bereich.';
+ document.getElementById('homeInsight').textContent=coachInsight();
+ renderTraining();renderHealth();renderNutrition();renderProgress();fillSettings()
+}
+function goalText(g){return g==='lose'?'Ziel: Körperfett reduzieren':g==='gain'?'Ziel: Muskelaufbau / Zunahme':'Ziel: Gewicht halten'}
+function totals(){return getUser().foods.filter(x=>sameDay(x.date)).reduce((a,f)=>({cal:a.cal+f.cal,p:a.p+f.p,c:a.c+f.c,f:a.f+f.f}),{cal:0,p:0,c:0,f:0})}
+function sameDay(a,b=new Date()){const d=new Date(a);return d.toDateString()===b.toDateString()}
+function weightTrend(){
+ const w=getUser().weights;if(w.length<2)return 'noch kein Trend';
+ const a=w[w.length-1].weight,b=w[w.length-2].weight,d=a-b;
+ return (d<0?'↓ ':'↑ ')+Math.abs(d).toFixed(1).replace('.',',')+' kg seit letzter Messung'
+}
+function coachInsight(){
+ const p=profile(),t=totals();
+ if(t.cal>p.cal*1.1)return 'Du liegst heute über deinem Kalorienziel. Einzelne Tage sind nicht entscheidend – betrachte den Wochentrend.';
+ if(t.p<p.p*.5)return `Dir fehlen noch ungefähr ${Math.round(p.p-t.p)} g Protein bis zu deinem Tagesziel.`;
+ if(getUser().workouts.length===0)return 'Starte mit deinem ersten Workout und protokolliere die Sätze. Danach kann FitAI deinen Verlauf auswerten.';
+ return 'Deine Daten werden gesammelt. Nutze Training, Ernährung und Gewicht regelmäßig, damit Trends sichtbar werden.'
+}
+
+function renderTraining(){
+ const u=getUser();if(!u)return;
+ ensureExerciseMetadata();
+ renderTrainingBrowser();
+ const last=latestPlan();
+ document.getElementById('activePlanText').textContent=last?`${last.name} · ${last.exercises.length} Übungen`:'Noch kein Trainingsplan erstellt.';
+ const box=document.getElementById('workoutExercises');
+ if(!last){box.innerHTML='<div class="empty">Erstelle oben rechts einen Trainingsplan.</div>'}
+ else{
+  box.innerHTML=last.exercises.map(eid=>{
+   const e=u.exercises.find(x=>x.id===eid);if(!e)return'';
+   const prev=latestExerciseSet(eid);
+   return `<div class="exercise"><h3>${esc(e.name)}</h3><span class="muted small">${e.muscle}</span><div class="row"><span>Letzter Satz</span><b>${prev?`${prev.weight} kg × ${prev.reps} · RIR ${prev.rir}`:'noch keine Daten'}</b></div><button class="full" onclick="openSetFor('${e.id}')">+ Satz protokollieren</button></div>`
+  }).join('')
+ }
+
+
+}
+function latestPlan(){const u=getUser();return u.plans.length?u.plans[u.plans.length-1]:null}
+function latestExerciseSet(eid){const arr=getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid);return arr.length?arr[arr.length-1]:null}
+function countExerciseSets(eid){return getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid).length}
+function startWorkout(){workoutStarted=true;workoutStart=Date.now();document.getElementById('workoutTimer').textContent='00:00';clearInterval(timerInterval);timerInterval=setInterval(()=>{const s=Math.floor((Date.now()-workoutStart)/1000);document.getElementById('workoutTimer').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`},1000);toast('Workout gestartet 💪')}
+function finishWorkout(){
+ if(!workoutStarted){toast('Starte zuerst ein Workout.');return}
+ const plan=latestPlan();const entries=getUser().__sessionSets||[];
+ getUser().workouts.push({date:new Date().toISOString(),plan:plan?plan.name:'Freies Workout',sets:entries.length,entries});
+ delete getUser().__sessionSets;workoutStarted=false;clearInterval(timerInterval);document.getElementById('workoutTimer').textContent='Gespeichert';persist();toast('Workout gespeichert ✅')
+}
+function openSetFor(eid){openModal('setModal');document.getElementById('setExercise').value=eid}
+function renderSetExerciseSelect(){document.getElementById('setExercise').innerHTML=getUser().exercises.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}
+function saveSet(){
+ if(!workoutStarted){toast('Bitte zuerst „Workout starten“ drücken.');return}
+ const u=getUser(),s={exerciseId:document.getElementById('setExercise').value,weight:Number(document.getElementById('setW').value)||0,reps:Number(document.getElementById('setR').value)||0,rir:Number(document.getElementById('setRir').value)||0};
+ if(!s.weight||!s.reps){toast('Gewicht und Wiederholungen fehlen.');return}
+ u.__sessionSets=u.__sessionSets||[];u.__sessionSets.push(s);saveAccounts();closeModal('setModal');renderTraining();toast('Satz gespeichert ✓')
+}
+function renderPlanChecks(){document.getElementById('planExerciseChecks').innerHTML=getUser().exercises.map(e=>`<label style="display:flex;align-items:center;gap:8px;padding:9px 0;color:white"><input type="checkbox" value="${e.id}" style="width:auto"> ${esc(e.name)} <span class="muted">· ${esc(e.muscle)}</span></label>`).join('')}
+function createPlan(){
+ const name=document.getElementById('planName').value.trim();const ids=[...document.querySelectorAll('#planExerciseChecks input:checked')].map(x=>x.value);
+ if(!name||!ids.length){toast('Planname und mindestens eine Übung wählen.');return}
+ getUser().plans.push({id:uid(),name,exercises:ids,date:new Date().toISOString()});persist();closeModal('planModal');document.getElementById('planName').value='';toast('Trainingsplan erstellt 🎉')
+}
+function createExercise(){
+ const name=document.getElementById('newExerciseName').value.trim(),muscle=document.getElementById('newExerciseMuscle').value;
+ if(!name){toast('Bitte Übungsname eingeben.');return}
+ const match=Object.entries(EXERCISE_META).find(([id,m])=>id===name.toLowerCase().replaceAll(' ','_'));getUser().exercises.push({id:uid(),name,muscle});persist();closeModal('exerciseModal');document.getElementById('newExerciseName').value='';toast('Übung hinzugefügt ✓')
+}
+
+function renderNutrition(){
+ const u=getUser(),p=u.profile,t=totals();
+ document.getElementById('calNow').textContent=Math.round(t.cal).toLocaleString('de-DE');document.getElementById('calGoal').textContent=p.cal.toLocaleString('de-DE');
+ document.getElementById('pNow').textContent=Math.round(t.p);document.getElementById('pGoal').textContent=p.p;
+ document.getElementById('cNow').textContent=Math.round(t.c);document.getElementById('cGoal').textContent=p.c;
+ document.getElementById('fNow').textContent=Math.round(t.f);document.getElementById('fGoal').textContent=p.f;
+ document.getElementById('calBar').style.width=Math.min(100,t.cal/p.cal*100)+'%';
+ const list=u.foods.filter(x=>sameDay(x.date));
+ document.getElementById('foodList').innerHTML=list.length?list.map((f,i)=>`<div class="meal"><div class="section-title"><h3>${esc(f.name)}</h3><b>${f.cal} kcal</b></div><p class="muted small">${f.meal} · ${f.p} g Protein · ${f.c} g KH · ${f.f} g Fett</p><button class="danger small" onclick="deleteFood('${f.id}')">Löschen</button></div>`).join(''):'<div class="empty">Noch keine Mahlzeiten für heute.</div>';
+ const rem=Math.max(0,Math.round(p.cal-t.cal));document.getElementById('nutritionInsight').textContent=rem?`Dir bleiben heute noch ungefähr ${rem.toLocaleString('de-DE')} kcal. Protein: noch ${Math.max(0,Math.round(p.p-t.p))} g.`:'Dein Kalorienziel ist heute erreicht. Achte weiter auf deine Makros.';
+}
+function createFood(){
+ const name=document.getElementById('mFoodName').value.trim(),cal=Number(document.getElementById('mCal').value)||0,p=Number(document.getElementById('mP').value)||0,c=Number(document.getElementById('mC').value)||0,f=Number(document.getElementById('mF').value)||0,meal=document.getElementById('mMeal').value;
+ if(!name||!cal){toast('Name und kcal eingeben.');return}
+ getUser().foods.push({id:uid(),date:new Date().toISOString(),name,cal,p,c,f,meal});persist();closeModal('foodModal');
+ ['mFoodName','mCal','mP','mC','mF'].forEach(id=>document.getElementById(id).value='');toast('Essen gespeichert 🍽️')
+}
+function deleteFood(id){getUser().foods=getUser().foods.filter(x=>x.id!==id);persist();toast('Eintrag gelöscht')}
+
+function askCoach(){
+ const q=document.getElementById('coachQuestion').value.toLowerCase();let a='';
+ const p=profile(),t=totals();
+ if(q.includes('protein'))a=`Heute sind ${Math.round(t.p)} g Protein eingetragen. Bis zu deinem Ziel von ${p.p} g fehlen ${Math.max(0,Math.round(p.p-t.p))} g.`;
+ else if(q.includes('kalorien')||q.includes('kcal'))a=`Heute: ${Math.round(t.cal)} von ${p.cal} kcal. Verbleibend: ${Math.max(0,Math.round(p.cal-t.cal))} kcal.`;
+ else if(q.includes('gewicht'))a=`Dein aktuelles Gewicht ist ${p.weight.toFixed(1)} kg. ${weightTrend()}.`;
+ else if(q.includes('training'))a=getUser().workouts.length?`Du hast ${getUser().workouts.length} Workout(s) abgeschlossen. Dein aktueller Plan ist ${latestPlan()?latestPlan().name:'noch keiner'}.`:'Du hast noch kein Workout gespeichert. Starte deine erste Einheit.';
+ else a=coachInsight();
+ document.getElementById('coachAnswer').textContent=a
+}
+function quickCoach(type){document.getElementById('coachQuestion').value=type;askCoach()}
+
+function renderProgress(){
+ const u=getUser();document.getElementById('progressWorkouts').textContent=u.workouts.length;
+ const w=u.weights.slice(-8),chart=document.getElementById('weightChart');
+ if(!w.length){chart.innerHTML='<div class="empty" style="width:100%">Noch keine Gewichtsdaten.</div>'}
+ else{
+  const vals=w.map(x=>x.weight),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
+  chart.innerHTML=vals.map((v,i)=>`<div class="barcol" style="height:${35+((v-min)/range)*85}px"><span>${new Date(w[i].date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</span></div>`).join('')
+ }
+ const latest={};u.workouts.flatMap(x=>x.entries||[]).forEach(s=>latest[s.exerciseId]=s);
+ document.getElementById('strengthTable').innerHTML=Object.entries(latest).length?`<table><tr><th>Übung</th><th>Gewicht</th><th>Wdh.</th><th>RIR</th></tr>${Object.entries(latest).map(([id,s])=>{const e=u.exercises.find(x=>x.id===id);return `<tr><td>${esc(e?e.name:id)}</td><td>${s.weight} kg</td><td>${s.reps}</td><td>${s.rir}</td></tr>`}).join('')}</table>`:'<div class="empty">Noch keine Kraftdaten.</div>'
+}
+function addWeight(){
+ const v=Number(document.getElementById('newWeight').value);if(!v){toast('Gewicht eingeben.');return}
+ const u=getUser();u.profile.weight=v;u.weights.push({date:new Date().toISOString(),weight:v,note:document.getElementById('weightNote').value.trim()});persist();document.getElementById('newWeight').value='';document.getElementById('weightNote').value='';toast('Gewicht gespeichert ⚖️')
+}
+
+function fillSettings(){
+ const p=profile();document.getElementById('sName').value=p.name||'';document.getElementById('sAge').value=p.age||'';document.getElementById('sHeight').value=p.height||'';document.getElementById('sWeight').value=p.weight||'';document.getElementById('sSex').value=p.sex||'male';document.getElementById('sActivity').value=p.activity||1.55;document.getElementById('sGoal').value=p.goal||'lose';document.getElementById('sCal').value=p.cal||2600;document.getElementById('sP').value=p.p||190;document.getElementById('sC').value=p.c||280;document.getElementById('sF').value=p.f||75
+}
+function saveSettings(){
+ const p=profile();p.name=document.getElementById('sName').value.trim()||p.name;p.age=Number(document.getElementById('sAge').value)||p.age;p.height=Number(document.getElementById('sHeight').value)||p.height;p.weight=Number(document.getElementById('sWeight').value)||p.weight;p.sex=document.getElementById('sSex').value;p.activity=Number(document.getElementById('sActivity').value);p.goal=document.getElementById('sGoal').value;p.cal=Number(document.getElementById('sCal').value)||p.cal;p.p=Number(document.getElementById('sP').value)||p.p;p.c=Number(document.getElementById('sC').value)||p.c;p.f=Number(document.getElementById('sF').value)||p.f;
+ getUser().weights.push({date:new Date().toISOString(),weight:p.weight,note:'Profil aktualisiert'});persist();toast('Profil gespeichert ✅')
+}
+function calculateTargets(){
+ const p=profile(),age=Number(document.getElementById('sAge').value)||21,h=Number(document.getElementById('sHeight').value)||175,w=Number(document.getElementById('sWeight').value)||95.8,a=Number(document.getElementById('sActivity').value)||1.55,g=document.getElementById('sGoal').value;
+ let bmr=p.sex==='female'?(10*w+6.25*h-5*age-161):(10*w+6.25*h-5*age+5);let cal=Math.round(bmr*a);
+ if(g==='lose')cal=Math.round(cal*.85);if(g==='gain')cal=Math.round(cal*1.10);
+ const protein=Math.round(w*(g==='gain'?2.0:1.8)),fat=Math.round(w*.75),carbs=Math.max(0,Math.round((cal-protein*4-fat*9)/4));
+ document.getElementById('sCal').value=cal;document.getElementById('sP').value=protein;document.getElementById('sC').value=carbs;document.getElementById('sF').value=f;toast('Ziele berechnet – Werte bitte prüfen.')
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+function exportData(){
+ const blob=new Blob([JSON.stringify(getUser(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='FitAI-Backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);toast('Backup erstellt 💾')
+}
+function importData(e){
+ const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.profile)throw Error();accounts[currentId]=d;saveAccounts();renderAll();toast('Backup importiert ✅')}catch{toast('Backup konnte nicht gelesen werden.')}};r.readAsText(file);e.target.value=''
+}
+function deleteCurrentProfile(){
+ if(!confirm('Dieses Profil wirklich löschen? Diese Daten gehen ohne Backup verloren.'))return;
+ delete accounts[currentId];saveAccounts();currentId=null;localStorage.removeItem('fitai_current');showLogin();document.getElementById('loginScreen').classList.add('show');toast('Profil gelöscht')
+}
+
+(function init(){
+ if(currentId&&accounts[currentId])enterApp();else{document.getElementById('loginScreen').classList.add('show');showLogin()}
+})();
 </script>
 </body>
 </html>
