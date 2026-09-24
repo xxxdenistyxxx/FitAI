@@ -133,17 +133,22 @@ label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}
 .positive{color:var(--green)}.warning{color:var(--orange)}.negative{color:var(--red)}
 .statline{display:flex;justify-content:space-between;margin:8px 0}
 .chart{
-  height:150px;display:flex;align-items:flex-end;gap:8px;padding:15px 0 5px;
-  border-bottom:1px solid var(--line)
+  width:100%;min-height:320px;display:block;
+  border-bottom:1px solid var(--line);
 }
-.chart .barcol{
-  flex:1;min-width:8px;border-radius:6px 6px 2px 2px;background:#777;
-  position:relative
-}
-.chart .barcol span{
-  position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
-  font-size:10px;color:var(--muted)
-}
+.weight-chart-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.weight-chart-svg{display:block;width:100%;min-width:100%;height:320px}
+.weight-chart-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.weight-chart-legend{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin-top:8px}
+.weight-chart-dot{fill:#6d5dfc;stroke:#0b0b0d;stroke-width:2}
+.weight-chart-area{fill:#6d5dfc;opacity:.10}
+.weight-chart-line{fill:none;stroke:#6d5dfc;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.weight-chart-grid{stroke:#24242a;stroke-width:1}
+.weight-chart-axis{fill:#8b8b93;font-size:11px}
+.weight-chart-value{fill:#fff;font-size:10px;font-weight:800}
+.weight-chart-date{fill:#8b8b93;font-size:10px}
+.chart .barcol{flex:1;min-width:8px;border-radius:6px 6px 2px 2px;background:#777;position:relative}
+.chart .barcol span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted)}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line)}
 hr{border:0;border-top:1px solid var(--line);margin:18px 0}
@@ -286,7 +291,11 @@ h1,h2,h3{letter-spacing:-.2px}
 <section id="settings" class="page">
   <h2>⚙️ Profil & Einstellungen</h2>
   <div class="card">
-    <div class="section-title"><h3>👤 Persönliche Daten</h3><span class="pill" id="profileNamePill"></span></div><br>
+    <div class="section-title"><h3>👤 Persönliche Daten</h3><span class="pill" id="profileNamePill"></span></div>
+    <div class="actions" style="margin:12px 0 8px">
+      <button id="profileEditBtn" class="secondary full" onclick="unlockProfileEdit()">🔒 Profil gesperrt – zum Bearbeiten entsperren</button>
+    </div>
+    <p id="profileLockInfo" class="muted small">Deine persönlichen Daten sind geschützt. Änderungen sind nur nach PIN-Bestätigung möglich.</p><br>
     <div class="formgrid">
       <div><label>Vorname / Name</label><input id="sName"></div>
       <div><label>Alter</label><input id="sAge" type="number"></div>
@@ -314,7 +323,7 @@ h1,h2,h3{letter-spacing:-.2px}
       <div><label>Kohlenhydrate (g)</label><input id="sC" type="number"></div>
       <div><label>Fett (g)</label><input id="sF" type="number"></div>
     </div>
-    <br><button class="full" onclick="saveSettings()">Änderungen speichern</button>
+    <br><button id="saveProfileBtn" class="full" onclick="saveSettings()" disabled>Änderungen speichern</button>
   </div>
 <div class="card">
     <h3>💾 Daten & Profil</h3>
@@ -385,9 +394,18 @@ h1,h2,h3{letter-spacing:-.2px}
 
 <script>
 const KEY='fitai_accounts_v3';
+const PROFILE_VAULT_PREFIX='fitai_profile_v1_';
 let accounts=JSON.parse(localStorage.getItem(KEY)||'{}');
 let currentId=localStorage.getItem('fitai_current')||null;
 let workoutStarted=false, workoutStart=0, timerInterval=null;
+let profileEditUnlocked=false;
+
+function profileDefaults(){return {name:'',age:21,height:175,weight:95.8,sex:'male',activity:1.55,goal:'lose',cal:2600,p:190,c:280,f:75};}
+function profileVaultKey(id=currentId){return id?PROFILE_VAULT_PREFIX+id:null}
+function loadProfileVault(id=currentId){try{const key=profileVaultKey(id);if(!key)return null;const raw=localStorage.getItem(key);return raw?JSON.parse(raw):null}catch{return null}}
+function saveProfileVault(profile,id=currentId){try{const key=profileVaultKey(id);if(key)localStorage.setItem(key,JSON.stringify({...profile}))}catch(e){console.warn('Profil konnte nicht separat gespeichert werden',e)}}
+function normalizeProfile(p,u){return {...profileDefaults(),...(p||{}),name:(p?.name??u?.name??'').toString()};}
+
 
 const defaultExercises=[
  {id:'bench',name:'Bankdrücken',muscle:'Brust'},
@@ -524,7 +542,18 @@ function exerciseCard(e){const m=EXERCISE_META[e.id]||{};return `<div class="lib
 function openExerciseDetail(id){const e=exerciseById(id),m=EXERCISE_META[id]||{};if(!e)return;const sets=getUser().workouts.flatMap(w=>(w.entries||[]).map(s=>({...s,date:w.date,plan:w.plan}))).filter(s=>s.exerciseId===id).reverse();const max=sets.length?Math.max(...sets.map(s=>Number(s.weight)||0)):0;const volume=sets.reduce((a,s)=>a+(Number(s.weight)||0)*(Number(s.reps)||0),0);const group=Object.entries(TRAINING_LIBRARY).find(([n,g])=>g.exercises.includes(id));document.getElementById('exerciseDetailSheet').innerHTML=`<div class="section-title"><button class="back-link" onclick="closeModal('exerciseDetailModal')">‹ Training</button><div style="display:flex;gap:7px"><button class="fav-btn ${e.favorite?'active':''}" onclick="toggleFavorite('${id}');openExerciseDetail('${id}')">${e.favorite?'★':'☆'}</button><button class="secondary" onclick="openSetFor('${id}');closeModal('exerciseDetailModal')">+ Satz</button></div></div><br><div class="exercise-hero"><div class="exercise-hero-media">${exerciseImgTag(id,e.name)}</div><div class="exercise-hero-body"><h2>${esc(e.name)}</h2><div class="tag-row"><span class="pill">${esc(e.muscle)}</span><span class="pill">${esc(m.equipment||'Krafttraining')}</span></div><p>${esc(exerciseDescription(id))}</p><div class="stat-grid"><div class="stat-box"><span class="muted tiny">BESTES GEWICHT</span><b>${max?max+' kg':'–'}</b></div><div class="stat-box"><span class="muted tiny">SÄTZE GESAMT</span><b>${sets.length}</b></div><div class="stat-box"><span class="muted tiny">VOLUMEN</span><b>${volume?Math.round(volume).toLocaleString('de-DE')+' kg':'–'}</b></div></div></div></div><div class="card"><h3>📖 Kurze Ausführung</h3>${(m.steps||[]).map((x,i)=>`<div class="instruction"><span class="instruction-num">${i+1}</span><span>${esc(x)}</span></div>`).join('')}</div><div class="card"><h3>💪 Trainierte Muskeln</h3><div class="anatomy-grid"><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Hauptmuskel</b><div class="muted small">${esc((m.muscles||[e.muscle])[0])}</div></div><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Nebenmuskeln</b><div class="muted small">${esc((m.muscles||[e.muscle]).slice(1).join(' · ')||'–')}</div></div></div></div><div class="card"><div class="section-title"><h3>📈 Deine komplette Historie</h3><span class="library-count">${sets.length} Einträge</span></div>${sets.length?`<div class="history-table"><table><thead><tr><th>Datum</th><th>Plan</th><th>Gewicht</th><th>Wdh.</th><th>RIR</th></tr></thead><tbody>${sets.map(s=>`<tr><td>${new Date(s.date).toLocaleDateString('de-DE')}</td><td>${esc(s.plan||'Workout')}</td><td>${s.weight} kg</td><td>${s.reps}</td><td>${s.rir}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Noch keine Daten. Protokolliere den ersten Satz und deine Historie baut sich automatisch auf.</div>'}</div>`;openModal('exerciseDetailModal')}
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
-function getUser(){return currentId?accounts[currentId]:null}
+function getUser(){
+ const u=currentId?accounts[currentId]:null;
+ if(!u)return null;
+ const saved=loadProfileVault(currentId);
+ if(saved){
+   u.profile=normalizeProfile(saved,u);
+ }else{
+   u.profile=normalizeProfile(u.profile,u);
+   saveProfileVault(u.profile,currentId);
+ }
+ return u;
+}
 function saveAccounts(){localStorage.setItem(KEY,JSON.stringify(accounts))}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.style.display='none',2200)}
 function showLogin(){
@@ -542,13 +571,13 @@ function register(){
  if(!/^\d{4,6}$/.test(pin)){toast('PIN muss 4–6 Ziffern haben.');return}
  const id=uid();
  accounts[id]={id,name,pin,profile:{name,age:21,height:175,weight:95.8,sex:'male',activity:1.55,goal:'lose',cal:2600,p:190,c:280,f:75},weights:[{date:new Date().toISOString(),weight:95.8,note:'Start'}],foods:[],exercises:structuredClone(defaultExercises),plans:[],workouts:[]};
- saveAccounts();currentId=id;localStorage.setItem('fitai_current',id);enterApp();toast('Profil erstellt 🎉')
+ saveAccounts();currentId=id;saveProfileVault(accounts[id].profile,id);localStorage.setItem('fitai_current',id);enterApp();toast('Profil erstellt 🎉')
 }
 function login(){
  const id=document.getElementById('loginUser').value,pin=document.getElementById('loginPin').value;
  const u=accounts[id];if(!u){toast('Kein Profil vorhanden.');return}
  if(u.pin!==pin){toast('PIN ist falsch.');return}
- currentId=id;localStorage.setItem('fitai_current',id);enterApp()
+ currentId=id;loadProfileVault(id);localStorage.setItem('fitai_current',id);enterApp()
 }
 function logout(){currentId=null;localStorage.removeItem('fitai_current');document.getElementById('loginScreen').classList.add('show');showLogin()}
 function enterApp(){document.getElementById('loginScreen').classList.remove('show');document.getElementById('loginPin').value='';renderAll()}
@@ -870,16 +899,20 @@ function coachInsight(){
 
 function svgLineChart(points,opts={}){
  if(!points.length)return '<div class="empty">Noch keine Daten.</div>';
- const W=Math.max(620,points.length*92),H=250,pad={l:54,r:18,t:24,b:48};
- const vals=points.map(p=>Number(p.value)||0),min=Math.min(...vals),max=Math.max(...vals);
- const span=max-min||1,lo=min-span*.12,hi=max+span*.12;
+ const W=Math.max(680,points.length*58),H=320,pad={l:58,r:22,t:28,b:58};
+ const vals=points.map(p=>Number(p.value)||0);
+ let min=Math.min(...vals),max=Math.max(...vals);
+ if(min===max){min-=1;max+=1}
+ const span=max-min,lo=min-span*.12,hi=max+span*.12;
  const x=i=>pad.l+(i/(Math.max(1,points.length-1)))*(W-pad.l-pad.r);
  const y=v=>pad.t+(1-(v-lo)/(hi-lo))*(H-pad.t-pad.b);
- const grid=[0,.25,.5,.75,1].map(t=>{const yy=pad.t+t*(H-pad.t-pad.b),v=hi-t*(hi-lo);return `<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="#25252b"/><text x="${pad.l-8}" y="${yy+4}" text-anchor="end" fill="#85858f" font-size="12">${v.toFixed(1).replace('.',',')}</text>`}).join('');
- const poly=points.map((p,i)=>`${x(i)},${y(Number(p.value)||0)}`).join(' ');
- const dots=points.map((p,i)=>`<circle cx="${x(i)}" cy="${y(Number(p.value)||0)}" r="4.5" fill="#6d5dfc"><title>${esc(p.label)} · ${(Number(p.value)||0).toFixed(1).replace('.',',')} ${esc(opts.unit||'')}</title></circle>`).join('');
- const labels=points.map((p,i)=>{const show=points.length<=8||i===0||i===points.length-1||i%Math.ceil(points.length/6)===0;return show?`<text x="${x(i)}" y="${H-15}" text-anchor="middle" fill="#85858f" font-size="11">${esc(p.label)}</text>`:''}).join('');
- return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><svg viewBox="0 0 ${W} ${H}" width="100%" height="250" role="img" aria-label="${esc(opts.aria||'Verlauf')}" style="min-width:${Math.min(W,680)}px;display:block">${grid}<polyline points="${poly}" fill="none" stroke="#6d5dfc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg></div>`;
+ const grid=[0,.25,.5,.75,1].map(t=>{const yy=pad.t+t*(H-pad.t-pad.b),v=hi-t*(hi-lo);return `<line class="weight-chart-grid" x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}"/><text class="weight-chart-axis" x="${pad.l-9}" y="${yy+4}" text-anchor="end">${v.toFixed(1).replace('.',',')}</text>`}).join('');
+ const line=points.map((p,i)=>`${x(i)},${y(Number(p.value)||0)}`).join(' ');
+ const area=`${pad.l},${H-pad.b} ${line} ${x(points.length-1)},${H-pad.b}`;
+ const dots=points.map((p,i)=>{const v=Number(p.value)||0;return `<circle class="weight-chart-dot" cx="${x(i)}" cy="${y(v)}" r="5"><title>${esc(p.label)} · ${v.toFixed(1).replace('.',',')} ${esc(opts.unit||'')}</title></circle>`}).join('');
+ const values=points.map((p,i)=>{const v=Number(p.value)||0;return `<text class="weight-chart-value" x="${x(i)}" y="${y(v)-10}" text-anchor="middle">${v.toFixed(1).replace('.',',')}</text>`}).join('');
+ const dates=points.map((p,i)=>{const label=String(p.label||'');return `<text class="weight-chart-date" x="${x(i)}" y="${H-22}" text-anchor="middle" transform="rotate(-38 ${x(i)} ${H-22})">${esc(label)}</text>`}).join('');
+ return `<div class="weight-chart-wrap"><svg class="weight-chart-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(opts.aria||'Verlauf')}">${grid}<polygon class="weight-chart-area" points="${area}"/><polyline class="weight-chart-line" points="${line}"/>${dots}${values}${dates}</svg></div>`;
 }
 function formatProgressDate(iso,withTime=false){
  const d=new Date(iso);if(Number.isNaN(d.getTime()))return '–';
@@ -893,9 +926,7 @@ function renderProgress(){
  if(!weights.length){
    chart.innerHTML='<div class="empty">Noch keine Gewichtsdaten. Trage unten dein erstes Gewicht ein.</div>';
  }else{
-   const sameDayCount={};weights.forEach(w=>{const k=new Date(w.date).toLocaleDateString('de-DE');sameDayCount[k]=(sameDayCount[k]||0)+1});
-   const seen={};
-   const points=weights.map(w=>{const d=new Date(w.date),day=d.toLocaleDateString('de-DE');seen[day]=(seen[day]||0)+1;const label=sameDayCount[day]>1?`${day} ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:day;return {label,value:Number(w.weight)};});
+   const points=weights.map(w=>{const d=new Date(w.date);const label=d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return {label,value:Number(w.weight)};});
    const first=Number(weights[0].weight),last=Number(weights.at(-1).weight),diff=last-first;
    const rows=weights.slice().reverse().slice(0,12).map((w,i)=>{const prev=weights[weights.length-1-i-1];const change=prev?Number(w.weight)-Number(prev.weight):null;return `<tr><td>${formatProgressDate(w.date,weights.filter(x=>new Date(x.date).toLocaleDateString('de-DE')===new Date(w.date).toLocaleDateString('de-DE')).length>1)}</td><td><b>${Number(w.weight).toFixed(1).replace('.',',')} kg</b></td><td>${change==null?'–':(change>0?'+':'')+change.toFixed(1).replace('.',',')+' kg'}</td></tr>`}).join('');
    chart.innerHTML=svgLineChart(points,{unit:'kg',aria:'Gewichtsverlauf'})+
@@ -1063,52 +1094,72 @@ function deleteFood(id){
 
 function addWeight(){
  const v=Number(document.getElementById('newWeight').value);if(!v){toast('Gewicht eingeben.');return}
- const u=getUser();
- if(!u.profile)u.profile={name:u.name||'',age:21,height:175,weight:v,sex:'male',activity:1.55,goal:'lose',cal:2600,p:190,c:280,f:75};
+ const u=getUser();if(!u)return;
+ u.profile=normalizeProfile(u.profile,u);
  if(!Array.isArray(u.weights))u.weights=[];
+ const entry={date:new Date().toISOString(),weight:v,note:document.getElementById('weightNote').value.trim()};
+ u.weights.push(entry);
+ // Das aktuelle Gewicht darf sich ändern, aber kein anderes Profilfeld.
  u.profile.weight=v;
- u.weights.push({date:new Date().toISOString(),weight:v,note:document.getElementById('weightNote').value.trim()});
- accounts[currentId]=u;saveAccounts();
+ accounts[currentId]=u;saveProfileVault(u.profile,currentId);saveAccounts();
  document.getElementById('newWeight').value='';document.getElementById('weightNote').value='';
  renderAll();toast('Gewicht gespeichert ⚖️')
 }
 
 let settingsDirty=false;
+function setProfileFieldsDisabled(disabled){
+ ['sName','sAge','sHeight','sWeight','sSex','sActivity','sGoal','sCal','sP','sC','sF'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=disabled});
+ const edit=document.getElementById('profileEditBtn');if(edit){edit.disabled=false;edit.textContent=disabled?'🔒 Profil gesperrt – zum Bearbeiten entsperren':'🔓 Profil bearbeiten'}
+ const save=document.getElementById('saveProfileBtn');if(save)save.disabled=disabled;
+ const info=document.getElementById('profileLockInfo');if(info)info.textContent=disabled?'Deine persönlichen Daten sind geschützt. Änderungen sind nur nach PIN-Bestätigung möglich.':'Bearbeitungsmodus aktiv. Prüfe deine Werte und speichere sie anschließend.';
+}
 function fillSettings(){
  const p=profile();if(!p)return;
  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value==null?'':String(value)};
  set('sName',p.name);set('sAge',p.age);set('sHeight',p.height);set('sWeight',p.weight);set('sSex',p.sex||'male');set('sActivity',p.activity||1.55);set('sGoal',p.goal||'lose');set('sCal',p.cal);set('sP',p.p);set('sC',p.c);set('sF',p.f);
  const pill=document.getElementById('profileNamePill');if(pill)pill.textContent=p.name||'Profil';
+ setProfileFieldsDisabled(!profileEditUnlocked);
  settingsDirty=false;
 }
-function markSettingsDirty(){settingsDirty=true}
-function saveSettings(){
+function markSettingsDirty(){if(profileEditUnlocked)settingsDirty=true}
+function unlockProfileEdit(){
  const u=getUser();if(!u)return;
- const old={...(u.profile||{})};
+ const entered=prompt('Bitte deine Profil-PIN eingeben, um die persönlichen Daten zu ändern:');
+ if(entered===null)return;
+ if(String(entered)!==String(u.pin)){toast('PIN ist falsch. 🔒');return}
+ profileEditUnlocked=true;
+ fillSettings();
+ toast('Profil entsperrt 🔓');
+}
+function saveSettings(){
+ const u=getUser();if(!u||!profileEditUnlocked){toast('Profil ist gesperrt. Bitte zuerst entsperren. 🔒');return}
+ const old=normalizeProfile(u.profile,u);
  const val=id=>document.getElementById(id)?.value ?? '';
  const num=(id,fallback)=>{const raw=val(id).trim();if(raw==='')return fallback;const n=Number(raw);return Number.isFinite(n)&&n>0?n:fallback};
  const p={...old,
    name:val('sName').trim()||old.name||u.name||'',
-   age:num('sAge',old.age??21),height:num('sHeight',old.height??175),weight:num('sWeight',old.weight??95.8),
-   sex:val('sSex')||old.sex||'male',activity:Number(val('sActivity'))||old.activity||1.55,goal:val('sGoal')||old.goal||'lose',
-   cal:num('sCal',old.cal??2600),p:num('sP',old.p??190),c:num('sC',old.c??280),f:num('sF',old.f??75),profileUpdatedAt:new Date().toISOString()
+   age:num('sAge',old.age),height:num('sHeight',old.height),weight:num('sWeight',old.weight),
+   sex:val('sSex')||old.sex,activity:Number(val('sActivity'))||old.activity,goal:val('sGoal')||old.goal,
+   cal:num('sCal',old.cal),p:num('sP',old.p),c:num('sC',old.c),f:num('sF',old.f),profileUpdatedAt:new Date().toISOString()
  };
- u.profile=p;accounts[currentId]=u;saveAccounts();fillSettings();renderAll();toast('Profil gespeichert – deine Daten bleiben erhalten 🔒');
+ u.profile=p;accounts[currentId]=u;saveProfileVault(p,currentId);saveAccounts();
+ profileEditUnlocked=false;fillSettings();renderAll();toast('Profil gespeichert und dauerhaft gesichert 🔒');
 }
 function calculateTargets(){
+ if(!profileEditUnlocked){toast('Bitte zuerst das Profil entsperren. 🔒');return}
  const p=profile(),age=Number(document.getElementById('sAge').value)||21,h=Number(document.getElementById('sHeight').value)||175,w=Number(document.getElementById('sWeight').value)||95.8,a=Number(document.getElementById('sActivity').value)||1.55,g=document.getElementById('sGoal').value;
  let bmr=p.sex==='female'?(10*w+6.25*h-5*age-161):(10*w+6.25*h-5*age+5);let cal=Math.round(bmr*a);
  if(g==='lose')cal=Math.round(cal*.85);if(g==='gain')cal=Math.round(cal*1.10);
  const protein=Math.round(w*(g==='gain'?2.0:1.8)),fat=Math.round(w*.75),carbs=Math.max(0,Math.round((cal-protein*4-fat*9)/4));
- document.getElementById('sCal').value=cal;document.getElementById('sP').value=protein;document.getElementById('sC').value=carbs;document.getElementById('sF').value=fat;settingsDirty=true;toast('Ziele berechnet – Werte bitte prüfen und speichern.')
-}
+ document.getElementById('sCal').value=cal;document.getElementById('sP').value=protein;document.getElementById('sC').value=carbs;document.getElementById('sF').value=fat;settingsDirty=true;toast('Ziele berechnet – bitte anschließend speichern.')}
+
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
 function exportData(){
  const blob=new Blob([JSON.stringify(getUser(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='FitAI-Backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);toast('Backup erstellt 💾')
 }
 function importData(e){
- const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.profile)throw Error();accounts[currentId]=d;saveAccounts();renderAll();toast('Backup importiert ✅')}catch{toast('Backup konnte nicht gelesen werden.')}};r.readAsText(file);e.target.value=''
+ const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.profile)throw Error();accounts[currentId]=d;saveProfileVault(normalizeProfile(d.profile,d),currentId);saveAccounts();renderAll();toast('Backup importiert ✅')}catch{toast('Backup konnte nicht gelesen werden.')}};r.readAsText(file);e.target.value=''
 }
 function deleteCurrentProfile(){
  if(!confirm('Dieses Profil wirklich löschen? Diese Daten gehen ohne Backup verloren.'))return;
