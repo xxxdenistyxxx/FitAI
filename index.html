@@ -605,11 +605,17 @@ function go(id,el){
  if(id==='nutrition')renderNutrition();
  if(id==='progress')renderProgress();
 }
-let healthData=JSON.parse(localStorage.getItem('fitai_health')||'null');
+let healthData=null;
+const HEALTH_DB_NAME='FitAIBuddyHealthDB', HEALTH_DB_VERSION=1, HEALTH_STORE='health';
+function openHealthDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window))return reject(new Error('IndexedDB wird von diesem Browser nicht unterstützt.'));const req=indexedDB.open(HEALTH_DB_NAME,HEALTH_DB_VERSION);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(HEALTH_STORE))req.result.createObjectStore(HEALTH_STORE);};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('Health-Speicher konnte nicht geöffnet werden.'));});}
+async function saveHealthData(data){const db=await openHealthDB();await new Promise((resolve,reject)=>{const tx=db.transaction(HEALTH_STORE,'readwrite');tx.objectStore(HEALTH_STORE).put(data,'current');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Health-Daten konnten nicht gespeichert werden.'));});db.close();}
+async function loadHealthData(){try{const db=await openHealthDB();const data=await new Promise((resolve,reject)=>{const tx=db.transaction(HEALTH_STORE,'readonly');const req=tx.objectStore(HEALTH_STORE).get('current');req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);});db.close();return data;}catch(e){console.warn('IndexedDB nicht verfügbar',e);try{return JSON.parse(localStorage.getItem('fitai_health')||'null')}catch{return null}}}
+async function deleteHealthData(){try{const db=await openHealthDB();await new Promise((resolve,reject)=>{const tx=db.transaction(HEALTH_STORE,'readwrite');tx.objectStore(HEALTH_STORE).delete('current');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();}catch(e){} localStorage.removeItem('fitai_health');}
+
 
 function openHealthImport(){document.getElementById('healthImportModal').classList.add('show')}
 function showHealthHelp(){openHealthImport()}
-function clearHealthData(){if(confirm('Importierte Health-Daten wirklich löschen?')){healthData=null;localStorage.removeItem('fitai_health');renderHealth();toast('Health-Daten gelöscht')}}
+function clearHealthData(){if(confirm('Importierte Health-Daten wirklich löschen?')){healthData=null;deleteHealthData();renderHealth();toast('Health-Daten gelöscht')}}
 function startOfToday(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
 function dateKey(d){const x=new Date(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`}
 function dateLabel(key){const [y,m,d]=String(key).split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}
@@ -752,9 +758,9 @@ function connectAppleHealth(){
     renderHealth();
   }
 }
-window.fitAIHealthData=function(data){
+window.fitAIHealthData=async function(data){
   healthData=normalizeHealthPayload(data)||data||null;
-  localStorage.setItem('fitai_health',JSON.stringify(healthData));
+  try{await saveHealthData(healthData);}catch(e){console.error(e);toast('Health-Daten wurden gelesen, konnten aber nicht gespeichert werden.');}
   renderHealth();
   toast('Apple Health synchronisiert ✓');
 };
@@ -967,12 +973,7 @@ function deleteCurrentProfile(){
  delete accounts[currentId];saveAccounts();currentId=null;localStorage.removeItem('fitai_current');showLogin();document.getElementById('loginScreen').classList.add('show');toast('Profil gelöscht')
 }
 
-(function init(){
- if(currentId&&accounts[currentId])enterApp();else{document.getElementById('loginScreen').classList.add('show');showLogin()}
-})();
-</script>
-</body>
-</htmlasync function importHealthFile(event){
+async function importHealthFile(event){
   const file=event.target.files?.[0];if(!file)return;
   try{
     const ext=file.name.toLowerCase().split('.').pop(); let parsed;
@@ -996,4 +997,14 @@ function deleteCurrentProfile(){
 Die Datei wird nur auf deinem Gerät verarbeitet und nicht zu GitHub hochgeladen.');}
   event.target.value='';
 }
->
+
+
+async function init(){healthData=await loadHealthData();if(currentId&&accounts[currentId])enterApp();else{document.getElementById('loginScreen').classList.add('show');showLogin()}}
+init();
+;
+</script>
+</body>
+</html
+</script>
+</body>
+</html>
