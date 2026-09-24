@@ -566,7 +566,7 @@ function go(id,el){
  if(id==='health')renderHealth();
  if(id==='nutrition')renderNutrition();
  if(id==='progress')renderProgress();
- if(id==='profile'){fillSettings();}
+ if(id==='profile'){if(!settingsDirty)fillSettings();}
 }
 
 let healthData=null;
@@ -850,7 +850,7 @@ function renderAll(){
  document.getElementById('todayWorkoutPill').textContent=last?'TRAININGSPLAN':'START';
  document.getElementById('todayWorkoutText').textContent=last?`${last.exercises.length} Übungen · individuell anpassbar`:'Erstelle deinen ersten Trainingsplan im Training-Bereich.';
  document.getElementById('homeInsight').textContent=coachInsight();
- renderTraining();renderHealth();renderNutrition();renderProgress();fillSettings()
+ renderTraining();renderHealth();renderNutrition();renderProgress();if(!settingsDirty)fillSettings()
 }
 function goalText(g){return g==='lose'?'Ziel: Körperfett reduzieren':g==='gain'?'Ziel: Muskelaufbau / Zunahme':'Ziel: Gewicht halten'}
 function totals(){return getUser().foods.filter(x=>sameDay(x.date)).reduce((a,f)=>({cal:a.cal+f.cal,p:a.p+f.p,c:a.c+f.c,f:a.f+f.f}),{cal:0,p:0,c:0,f:0})}
@@ -868,51 +868,66 @@ function coachInsight(){
  return 'Deine Daten werden gesammelt. Nutze Training, Ernährung und Gewicht regelmäßig, damit Trends sichtbar werden.'
 }
 
-function svgLineChart(points, opts={}){
- const W=720,H=280,PL=54,PR=18,PT=22,PB=52;
- const plotW=W-PL-PR,plotH=H-PT-PB;
- if(!points.length)return '<div class="empty">Noch keine Daten vorhanden.</div>';
- const vals=points.map(p=>Number(p.value)||0),minV=Math.min(...vals),maxV=Math.max(...vals);
- const pad=Math.max((maxV-minV)*0.15,0.5),lo=Math.max(0,minV-pad),hi=maxV+pad;
- const x=i=>points.length===1?PL+plotW/2:PL+(i/(points.length-1))*plotW;
- const y=v=>PT+((hi-v)/(hi-lo))*plotH;
- const poly=points.map((p,i)=>`${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
- const grid=[0,1,2,3,4].map(i=>{const v=hi-(i/4)*(hi-lo),yy=y(v);return `<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="#24242a"/><text x="${PL-8}" y="${yy+4}" text-anchor="end" fill="#8b8b93" font-size="11">${Number(v).toFixed(opts.decimals??1).replace('.',',')}</text>`}).join('');
- const labels=points.map((p,i)=>{if(points.length>8 && i%Math.ceil(points.length/6)!==0 && i!==points.length-1)return '';return `<text x="${x(i)}" y="${H-20}" text-anchor="middle" fill="#8b8b93" font-size="10">${esc(p.label)}</text>`}).join('');
- const dots=points.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.value)}" r="4" fill="#6d5dfc"><title>${esc(p.label)}: ${Number(p.value).toFixed(1).replace('.',',')} ${esc(opts.unit||'')}</title></circle>`).join('');
- return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="100%" height="280" role="img" aria-label="${esc(opts.aria||'Verlauf')}" style="min-width:520px;display:block">${grid}<polyline points="${poly}" fill="none" stroke="#6d5dfc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg></div>`;
+function svgLineChart(points,opts={}){
+ if(!points.length)return '<div class="empty">Noch keine Daten.</div>';
+ const W=Math.max(620,points.length*92),H=250,pad={l:54,r:18,t:24,b:48};
+ const vals=points.map(p=>Number(p.value)||0),min=Math.min(...vals),max=Math.max(...vals);
+ const span=max-min||1,lo=min-span*.12,hi=max+span*.12;
+ const x=i=>pad.l+(i/(Math.max(1,points.length-1)))*(W-pad.l-pad.r);
+ const y=v=>pad.t+(1-(v-lo)/(hi-lo))*(H-pad.t-pad.b);
+ const grid=[0,.25,.5,.75,1].map(t=>{const yy=pad.t+t*(H-pad.t-pad.b),v=hi-t*(hi-lo);return `<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="#25252b"/><text x="${pad.l-8}" y="${yy+4}" text-anchor="end" fill="#85858f" font-size="12">${v.toFixed(1).replace('.',',')}</text>`}).join('');
+ const poly=points.map((p,i)=>`${x(i)},${y(Number(p.value)||0)}`).join(' ');
+ const dots=points.map((p,i)=>`<circle cx="${x(i)}" cy="${y(Number(p.value)||0)}" r="4.5" fill="#6d5dfc"><title>${esc(p.label)} · ${(Number(p.value)||0).toFixed(1).replace('.',',')} ${esc(opts.unit||'')}</title></circle>`).join('');
+ const labels=points.map((p,i)=>{const show=points.length<=8||i===0||i===points.length-1||i%Math.ceil(points.length/6)===0;return show?`<text x="${x(i)}" y="${H-15}" text-anchor="middle" fill="#85858f" font-size="11">${esc(p.label)}</text>`:''}).join('');
+ return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><svg viewBox="0 0 ${W} ${H}" width="100%" height="250" role="img" aria-label="${esc(opts.aria||'Verlauf')}" style="min-width:${Math.min(W,680)}px;display:block">${grid}<polyline points="${poly}" fill="none" stroke="#6d5dfc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg></div>`;
+}
+function formatProgressDate(iso,withTime=false){
+ const d=new Date(iso);if(Number.isNaN(d.getTime()))return '–';
+ return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+(withTime?' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'');
 }
 function renderProgress(){
  const u=getUser();if(!u)return;
- const p=u.profile||{};
  const weights=Array.isArray(u.weights)?u.weights.slice().filter(x=>Number.isFinite(Number(x.weight))&&x.date).sort((a,b)=>new Date(a.date)-new Date(b.date)):[];
  document.getElementById('progressWorkouts').textContent=Array.isArray(u.workouts)?u.workouts.length:0;
  const chart=document.getElementById('weightChart');
- if(!weights.length){chart.innerHTML='<div class="empty">Noch keine Gewichtsdaten. Trage unten dein erstes Gewicht ein.</div>';}else{
-   const points=weights.map(w=>({label:new Date(w.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}),value:Number(w.weight)}));
-   chart.innerHTML=svgLineChart(points,{unit:'kg',aria:'Gewichtsverlauf'});
+ if(!weights.length){
+   chart.innerHTML='<div class="empty">Noch keine Gewichtsdaten. Trage unten dein erstes Gewicht ein.</div>';
+ }else{
+   const sameDayCount={};weights.forEach(w=>{const k=new Date(w.date).toLocaleDateString('de-DE');sameDayCount[k]=(sameDayCount[k]||0)+1});
+   const seen={};
+   const points=weights.map(w=>{const d=new Date(w.date),day=d.toLocaleDateString('de-DE');seen[day]=(seen[day]||0)+1;const label=sameDayCount[day]>1?`${day} ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:day;return {label,value:Number(w.weight)};});
+   const first=Number(weights[0].weight),last=Number(weights.at(-1).weight),diff=last-first;
+   const rows=weights.slice().reverse().slice(0,12).map((w,i)=>{const prev=weights[weights.length-1-i-1];const change=prev?Number(w.weight)-Number(prev.weight):null;return `<tr><td>${formatProgressDate(w.date,weights.filter(x=>new Date(x.date).toLocaleDateString('de-DE')===new Date(w.date).toLocaleDateString('de-DE')).length>1)}</td><td><b>${Number(w.weight).toFixed(1).replace('.',',')} kg</b></td><td>${change==null?'–':(change>0?'+':'')+change.toFixed(1).replace('.',',')+' kg'}</td></tr>`}).join('');
+   chart.innerHTML=svgLineChart(points,{unit:'kg',aria:'Gewichtsverlauf'})+
+     `<div class="quick-stat"><span>Startgewicht</span><b>${first.toFixed(1).replace('.',',')} kg</b><span>Aktuell</span><b>${last.toFixed(1).replace('.',',')} kg</b><span>Veränderung</span><b>${(diff>0?'+':'')+diff.toFixed(1).replace('.',',')} kg</b></div>`+
+     `<div class="history-table" style="margin-top:12px"><table><thead><tr><th>Datum</th><th>Gewicht</th><th>Änderung</th></tr></thead><tbody>${rows}</tbody></table></div>`;
  }
  const strength=document.getElementById('strengthTable');
- const entries=Array.isArray(u.workouts)?u.workouts.flatMap(w=>(w.entries||[]).map(e=>({...e,date:w.date}))):[];
- const grouped={};
- entries.forEach(e=>{const id=e.exerciseId;if(!id)return;(grouped[id]??=[]).push(e)});
- const ids=Object.keys(grouped).filter(id=>grouped[id].some(e=>Number(e.weight)>0));
- if(!ids.length){strength.innerHTML='<div class="empty">Noch keine Kraftdaten. Starte ein Workout und protokolliere deine Sätze. Danach wird die Entwicklung hier automatisch angezeigt.</div>';return;}
+ const historical=Array.isArray(u.workouts)?u.workouts.flatMap(w=>(w.entries||[]).map(e=>({...e,date:w.date,plan:w.plan}))).filter(e=>Number(e.weight)>0):[];
+ const session=Array.isArray(u.__sessionSets)?u.__sessionSets.map(e=>({...e,date:e.savedAt||new Date().toISOString(),plan:'Aktuelles Workout'})).filter(e=>Number(e.weight)>0):[];
+ const entries=[...historical,...session];
+ const grouped={};entries.forEach(e=>{const id=e.exerciseId;if(!id)return;(grouped[id]??=[]).push(e)});
+ const ids=Object.keys(grouped);
+ if(!ids.length){strength.innerHTML='<div class="empty">Noch keine Kraftdaten. Starte ein Workout und protokolliere deine Sätze. Die Entwicklung erscheint danach automatisch.</div>';return;}
  const options=ids.map(id=>{const ex=u.exercises.find(x=>x.id===id);return `<option value="${esc(id)}">${esc(ex?.name||id)}</option>`}).join('');
  strength.innerHTML=`<label class="muted small">Übung auswählen</label><select id="strengthExercise" onchange="renderStrengthChart(this.value)">${options}</select><div id="strengthChart" style="margin-top:12px"></div><div id="strengthSummary" class="quick-stat" style="margin-top:10px"></div>`;
  renderStrengthChart(ids[0]);
 }
 function renderStrengthChart(exerciseId){
  const u=getUser();const box=document.getElementById('strengthChart');const summary=document.getElementById('strengthSummary');if(!u||!box)return;
- const ex=u.exercises.find(x=>x.id===exerciseId);const rows=(u.workouts||[]).slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).flatMap(w=>{
+ const ex=u.exercises.find(x=>x.id===exerciseId);
+ const rows=[];
+ (u.workouts||[]).slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(w=>{
    const vals=(w.entries||[]).filter(e=>e.exerciseId===exerciseId).map(e=>Number(e.weight)||0).filter(v=>v>0);
-   if(!vals.length)return [];
-   return [{date:w.date,value:Math.max(...vals)}];
+   if(vals.length)rows.push({date:w.date,value:Math.max(...vals),plan:w.plan||'Workout'});
  });
- const points=rows.map(r=>({label:new Date(r.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}),value:r.value}));
- box.innerHTML=svgLineChart(points,{unit:'kg',aria:`Kraftentwicklung ${ex?.name||''}`});
+ (u.__sessionSets||[]).filter(e=>e.exerciseId===exerciseId&&Number(e.weight)>0).forEach(e=>rows.push({date:e.savedAt||new Date().toISOString(),value:Number(e.weight),plan:'Aktuelles Workout'}));
+ rows.sort((a,b)=>new Date(a.date)-new Date(b.date));
+ const points=rows.map(r=>({label:new Date(r.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+' '+new Date(r.date).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),value:r.value}));
+ box.innerHTML=points.length?svgLineChart(points,{unit:'kg',aria:`Kraftentwicklung ${ex?.name||''}`}):'<div class="empty">Noch keine Daten für diese Übung.</div>';
  const first=points[0]?.value,last=points.length?points[points.length-1].value:null;
- if(summary)summary.innerHTML=`<span>Erster Bestwert</span><b>${first!=null?first.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Aktueller Bestwert</span><b>${last!=null?last.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Veränderung</span><b>${first!=null&&last!=null?(last-first>=0?'+':'')+(last-first).toFixed(1).replace('.',',')+' kg':'–'}</b>`;
+ const best=points.length?Math.max(...points.map(p=>p.value)):null;
+ if(summary)summary.innerHTML=`<span>Erster Bestwert</span><b>${first!=null?first.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Aktueller Wert</span><b>${last!=null?last.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Bestes Gewicht</span><b>${best!=null?best.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Veränderung</span><b>${first!=null&&last!=null?(last-first>=0?'+':'')+(last-first).toFixed(1).replace('.',',')+' kg':'–'}</b>`;
 }
 function renderTraining(){
  const u=getUser();if(!u)return;
@@ -1000,7 +1015,7 @@ function saveSet(){
  if(!workoutStarted){toast('Bitte zuerst „Workout starten“ drücken.');return}
  const u=getUser(),s={exerciseId:document.getElementById('setExercise').value,weight:Number(document.getElementById('setW').value)||0,reps:Number(document.getElementById('setR').value)||0,rir:Number(document.getElementById('setRir').value)||0};
  if(!s.weight||!s.reps){toast('Gewicht und Wiederholungen fehlen.');return}
- u.__sessionSets=u.__sessionSets||[];u.__sessionSets.push(s);saveAccounts();closeModal('setModal');renderTraining();toast('Satz gespeichert ✓')
+ u.__sessionSets=u.__sessionSets||[];s.savedAt=new Date().toISOString();u.__sessionSets.push(s);saveAccounts();closeModal('setModal');renderTraining();toast('Satz gespeichert ✓')
 }
 function renderPlanChecks(){document.getElementById('planExerciseChecks').innerHTML=getUser().exercises.map(e=>`<label style="display:flex;align-items:center;gap:8px;padding:9px 0;color:white"><input type="checkbox" value="${e.id}" style="width:auto"> ${esc(e.name)} <span class="muted">· ${esc(e.muscle)}</span></label>`).join('')}
 function createPlan(){
@@ -1058,31 +1073,34 @@ function addWeight(){
  renderAll();toast('Gewicht gespeichert ⚖️')
 }
 
+let settingsDirty=false;
 function fillSettings(){
- const p=profile();document.getElementById('sName').value=p.name||'';document.getElementById('sAge').value=p.age||'';document.getElementById('sHeight').value=p.height||'';document.getElementById('sWeight').value=p.weight||'';document.getElementById('sSex').value=p.sex||'male';document.getElementById('sActivity').value=p.activity||1.55;document.getElementById('sGoal').value=p.goal||'lose';document.getElementById('sCal').value=p.cal||2600;document.getElementById('sP').value=p.p||190;document.getElementById('sC').value=p.c||280;document.getElementById('sF').value=p.f||75
+ const p=profile();if(!p)return;
+ const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value==null?'':String(value)};
+ set('sName',p.name);set('sAge',p.age);set('sHeight',p.height);set('sWeight',p.weight);set('sSex',p.sex||'male');set('sActivity',p.activity||1.55);set('sGoal',p.goal||'lose');set('sCal',p.cal);set('sP',p.p);set('sC',p.c);set('sF',p.f);
+ const pill=document.getElementById('profileNamePill');if(pill)pill.textContent=p.name||'Profil';
+ settingsDirty=false;
 }
+function markSettingsDirty(){settingsDirty=true}
 function saveSettings(){
  const u=getUser();if(!u)return;
  const old={...(u.profile||{})};
  const val=id=>document.getElementById(id)?.value ?? '';
  const num=(id,fallback)=>{const raw=val(id).trim();if(raw==='')return fallback;const n=Number(raw);return Number.isFinite(n)&&n>0?n:fallback};
- const name=val('sName').trim();
- const p={...old};
- if(name)p.name=name;
- p.age=num('sAge',old.age??21);p.height=num('sHeight',old.height??175);p.weight=num('sWeight',old.weight??95.8);
- p.sex=val('sSex')||old.sex||'male';p.activity=Number(val('sActivity'))||old.activity||1.55;p.goal=val('sGoal')||old.goal||'lose';
- p.cal=num('sCal',old.cal??2600);p.p=num('sP',old.p??190);p.c=num('sC',old.c??280);p.f=num('sF',old.f??75);
- u.profile=p;accounts[currentId]=u;
- try{saveAccounts();}catch(e){console.error(e);alert('Profil konnte nicht gespeichert werden. Bitte prüfe den freien Speicher im Browser.');return;}
- fillSettings();renderAll();toast('Profil gespeichert ✅')
+ const p={...old,
+   name:val('sName').trim()||old.name||u.name||'',
+   age:num('sAge',old.age??21),height:num('sHeight',old.height??175),weight:num('sWeight',old.weight??95.8),
+   sex:val('sSex')||old.sex||'male',activity:Number(val('sActivity'))||old.activity||1.55,goal:val('sGoal')||old.goal||'lose',
+   cal:num('sCal',old.cal??2600),p:num('sP',old.p??190),c:num('sC',old.c??280),f:num('sF',old.f??75),profileUpdatedAt:new Date().toISOString()
+ };
+ u.profile=p;accounts[currentId]=u;saveAccounts();fillSettings();renderAll();toast('Profil gespeichert – deine Daten bleiben erhalten 🔒');
 }
-
 function calculateTargets(){
  const p=profile(),age=Number(document.getElementById('sAge').value)||21,h=Number(document.getElementById('sHeight').value)||175,w=Number(document.getElementById('sWeight').value)||95.8,a=Number(document.getElementById('sActivity').value)||1.55,g=document.getElementById('sGoal').value;
  let bmr=p.sex==='female'?(10*w+6.25*h-5*age-161):(10*w+6.25*h-5*age+5);let cal=Math.round(bmr*a);
  if(g==='lose')cal=Math.round(cal*.85);if(g==='gain')cal=Math.round(cal*1.10);
  const protein=Math.round(w*(g==='gain'?2.0:1.8)),fat=Math.round(w*.75),carbs=Math.max(0,Math.round((cal-protein*4-fat*9)/4));
- document.getElementById('sCal').value=cal;document.getElementById('sP').value=protein;document.getElementById('sC').value=carbs;document.getElementById('sF').value=fat;toast('Ziele berechnet – Werte bitte prüfen.')
+ document.getElementById('sCal').value=cal;document.getElementById('sP').value=protein;document.getElementById('sC').value=carbs;document.getElementById('sF').value=fat;settingsDirty=true;toast('Ziele berechnet – Werte bitte prüfen und speichern.')
 }
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
@@ -1125,12 +1143,14 @@ async function init(){
  healthData=await loadHealthData();
  if(currentId&&accounts[currentId]){
    const u=accounts[currentId];
-   u.profile={name:u.profile?.name??u.name??'',age:u.profile?.age??21,height:u.profile?.height??175,weight:u.profile?.weight??95.8,sex:u.profile?.sex??'male',activity:u.profile?.activity??1.55,goal:u.profile?.goal??'lose',cal:u.profile?.cal??2600,p:u.profile?.p??190,c:u.profile?.c??280,f:u.profile?.f??75};
+   const before=JSON.stringify(u.profile||{});
+   u.profile={name:u.profile?.name??u.name??'',age:u.profile?.age??21,height:u.profile?.height??175,weight:u.profile?.weight??95.8,sex:u.profile?.sex??'male',activity:u.profile?.activity??1.55,goal:u.profile?.goal??'lose',cal:u.profile?.cal??2600,p:u.profile?.p??190,c:u.profile?.c??280,f:u.profile?.f??75,profileUpdatedAt:u.profile?.profileUpdatedAt??null};
    if(!Array.isArray(u.weights))u.weights=[];
    if(!Array.isArray(u.foods))u.foods=[];if(!Array.isArray(u.exercises))u.exercises=structuredClone(defaultExercises);if(!Array.isArray(u.plans))u.plans=[];if(!Array.isArray(u.workouts))u.workouts=[];
-   accounts[currentId]=u;saveAccounts();enterApp();
+   accounts[currentId]=u;if(before!==JSON.stringify(u.profile))saveAccounts();enterApp();
  }else{document.getElementById('loginScreen').classList.add('show');showLogin()}
 }
+document.addEventListener('input',e=>{if(e.target&&/^s(Name|Age|Height|Weight|Sex|Activity|Goal|Cal|P|C|F)$/.test(e.target.id))settingsDirty=true});
 init();
 ;
 </script>
