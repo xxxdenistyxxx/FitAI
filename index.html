@@ -467,27 +467,27 @@ const defaultExercises=[
 
 const TRAINING_LIBRARY={
  'Brust':{
-  image:'assets/group_chest.png',desc:'Drück- und Isolationsübungen für die Brustmuskulatur.',
+  image:'https://images.unsplash.com/photo-1653773869760-5b0f846231fb?auto=format&fit=crop&fm=jpg&q=80&w=1200',desc:'Drück- und Isolationsübungen für die Brustmuskulatur.',
   exercises:['bench','incline','dbpress','butterfly','pushup','dips']
  },
  'Rücken':{
-  image:'assets/group_back.png',desc:'Übungen für Lat, oberen Rücken und Rückenstrecker.',
+  image:'https://images.unsplash.com/photo-1745329532611-03818982ed31?auto=format&fit=crop&fm=jpg&q=80&w=1200',desc:'Übungen für Lat, oberen Rücken und Rückenstrecker.',
   exercises:['lat','row','pullup','facepull']
  },
  'Schulter':{
-  image:'assets/group_shoulders.png',desc:'Vordere, seitliche und hintere Schulter gezielt trainieren.',
+  image:'https://images.unsplash.com/photo-1704223523328-a822b65c6e1b?auto=format&fit=crop&fm=jpg&q=80&w=1200',desc:'Vordere, seitliche und hintere Schulter gezielt trainieren.',
   exercises:['ohp','lateral','rear','facepull']
  },
  'Arme':{
-  image:'assets/group_arms.png',desc:'Bizeps und Trizeps mit freien Gewichten und Kabeln.',
+  image:'https://images.unsplash.com/photo-1704223523321-7b0b44a1a0b9?auto=format&fit=crop&fm=jpg&q=80&w=1200',desc:'Bizeps und Trizeps mit freien Gewichten und Kabeln.',
   exercises:['curl','hammer','pushdown','overhead','dips']
  },
  'Beine':{
-  image:'assets/group_legs.png',desc:'Quadrizeps, Beinbeuger, Gesäß und Waden.',
+  image:'https://images.unsplash.com/photo-1645810809381-97f6fd2f7d10?auto=format&fit=crop&fm=jpg&q=80&w=1200',desc:'Quadrizeps, Beinbeuger, Gesäß und Waden.',
   exercises:['squat','legpress','rdl','legcurl','legext','calf']
  },
  'Bauch':{
-  image:'assets/group_abs.png',desc:'Core-Übungen für Bauch und Rumpfstabilität.',
+  image:'https://images.unsplash.com/photo-1758875569284-c57e79ef75e0?auto=format&fit=crop&fm=jpg&q=80&w=1200',desc:'Core-Übungen für Bauch und Rumpfstabilität.',
   exercises:['crunch','legraise']
  }
 };
@@ -538,10 +538,10 @@ function selectMuscle(name){selectedMuscle=name;trainingMode='muscle';document.q
 function renderTrainingBrowser(){
  const el=document.getElementById('trainingBrowser');if(!el)return;ensureExerciseMetadata();
  const tools=`<div class="training-tools"><input class="training-search" placeholder="🔎 Übung suchen..." value="${esc(trainingSearch)}" oninput="trainingSearch=this.value;renderTrainingBrowser()"><button class="filter-chip ${equipmentFilter==='Alle'?'active':''}" onclick="setEquipmentFilter('Alle')">Alle</button><button class="filter-chip ${equipmentFilter==='Langhantel'?'active':''}" onclick="setEquipmentFilter('Langhantel')">Langhantel</button><button class="filter-chip ${equipmentFilter==='Kurzhanteln'?'active':''}" onclick="setEquipmentFilter('Kurzhanteln')">Kurzhantel</button><button class="filter-chip ${equipmentFilter==='Maschine'?'active':''}" onclick="setEquipmentFilter('Maschine')">Maschine</button><button class="filter-chip ${equipmentFilter==='Kabelzug'?'active':''}" onclick="setEquipmentFilter('Kabelzug')">Kabel</button><button class="filter-chip ${favoriteOnly?'active':''}" onclick="favoriteOnly=!favoriteOnly;renderTrainingBrowser()">⭐ Favoriten</button></div>`;
- const imageCredit=`<div class="muted tiny" style="margin:6px 2px 10px">Übungsbilder: <a href="https://repdb.co" target="_blank" rel="noopener" style="color:#a78bfa">RepDB</a> · freie In-App-Nutzung mit Namensnennung</div>`;
+ const imageCredit=`<div class="muted tiny" style="margin:6px 2px 10px">Übungsbilder: <a href="https://repdb.co" target="_blank" rel="noopener" style="color:#a78bfa">RepDB</a> · Kategorie-Fotos: <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#a78bfa">Unsplash</a> · freie Nutzung gemäß jeweiliger Lizenz</div>`;
  if(trainingMode==='groups'){
   const groups=Object.entries(TRAINING_LIBRARY).filter(([name,g])=>(!trainingSearch||name.toLowerCase().includes(trainingSearch.toLowerCase())||g.desc.toLowerCase().includes(trainingSearch.toLowerCase())));
-  el.innerHTML=`<div class="card"><div class="section-title"><div><h3>Muskelgruppen</h3><span class="muted small">Wähle eine Muskelgruppe und entdecke passende Übungen.</span></div></div>${tools}${imageCredit}<div class="muscle-grid" style="margin-top:13px">${groups.map(([name,g])=>`<div class="muscle-card" onclick="selectMuscle('${name}')"><img src="${g.image}" alt="${name}"><div class="mc-copy"><b>${name}</b><span>${g.exercises.length} Übungen · ansehen →</span></div></div>`).join('')}</div></div>`;
+  el.innerHTML=`<div class="card"><div class="section-title"><div><h3>Muskelgruppen</h3><span class="muted small">Wähle eine Muskelgruppe und entdecke passende Übungen.</span></div></div>${tools}${imageCredit}<div class="muscle-grid" style="margin-top:13px">${groups.map(([name,g])=>`<div class="muscle-card" onclick="selectMuscle('${name}')"><img src="${g.image}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='assets/group_chest.png'"><div class="mc-copy"><b>${name}</b><span>${g.exercises.length} Übungen · ansehen →</span></div></div>`).join('')}</div></div>`;
  } else if(trainingMode==='muscle'){
   const g=TRAINING_LIBRARY[selectedMuscle];
   let ex=g.exercises.map(exerciseById).filter(Boolean);
