@@ -604,7 +604,9 @@ function go(id,el){
  if(id==='health')renderHealth();
  if(id==='nutrition')renderNutrition();
  if(id==='progress')renderProgress();
+ if(id==='profile')fillSettings();
 }
+
 let healthData=null;
 const HEALTH_DB_NAME='FitAIBuddyHealthDB', HEALTH_DB_VERSION=1, HEALTH_STORE='health';
 function openHealthDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window))return reject(new Error('IndexedDB wird von diesem Browser nicht unterstützt.'));const req=indexedDB.open(HEALTH_DB_NAME,HEALTH_DB_VERSION);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(HEALTH_STORE))req.result.createObjectStore(HEALTH_STORE);};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('Health-Speicher konnte nicht geöffnet werden.'));});}
@@ -765,18 +767,19 @@ window.fitAIHealthData=async function(data){
   toast('Apple Health synchronisiert ✓');
 };
 
-function selectedHealthPayload(){
+window.selectedHealthPayload=function selectedHealthPayload(){
   if(!healthData) return null;
   if(!healthData.daily) return healthData;
   const keys=Array.isArray(healthData.availableDays)&&healthData.availableDays.length
-    ? healthData.availableDays
+    ? healthData.availableDays.slice()
     : Object.keys(healthData.daily||{});
+  const today=dateKey(new Date());
   const key=healthData.selectedDate && healthData.daily[healthData.selectedDate]
     ? healthData.selectedDate
-    : (keys.includes(dateKey(new Date())) ? dateKey(new Date()) : keys.slice().sort().reverse()[0]);
+    : (keys.includes(today) ? today : keys.slice().sort().reverse()[0]);
   if(!key || !healthData.daily[key]) return null;
   return {...healthData.daily[key], selectedDate:key};
-}
+};
 function selectHealthDay(key){
   if(!healthData?.daily?.[key]) return;
   healthData.selectedDate=key;
@@ -785,7 +788,7 @@ function selectHealthDay(key){
 }
 
 function renderHealth(){
-  const d=selectedHealthPayload();
+  const d=window.selectedHealthPayload();
   const has=!!d;
   const dayKey=healthData?.selectedDate||(healthData?.availableDays?.includes(dateKey(new Date()))?dateKey(new Date()):null);
   const label=dayKey?dateLabel(dayKey):'heute';
@@ -969,8 +972,19 @@ function fillSettings(){
  const p=profile();document.getElementById('sName').value=p.name||'';document.getElementById('sAge').value=p.age||'';document.getElementById('sHeight').value=p.height||'';document.getElementById('sWeight').value=p.weight||'';document.getElementById('sSex').value=p.sex||'male';document.getElementById('sActivity').value=p.activity||1.55;document.getElementById('sGoal').value=p.goal||'lose';document.getElementById('sCal').value=p.cal||2600;document.getElementById('sP').value=p.p||190;document.getElementById('sC').value=p.c||280;document.getElementById('sF').value=p.f||75
 }
 function saveSettings(){
- const p=profile();p.name=document.getElementById('sName').value.trim()||p.name;p.age=Number(document.getElementById('sAge').value)||p.age;p.height=Number(document.getElementById('sHeight').value)||p.height;p.weight=Number(document.getElementById('sWeight').value)||p.weight;p.sex=document.getElementById('sSex').value;p.activity=Number(document.getElementById('sActivity').value);p.goal=document.getElementById('sGoal').value;p.cal=Number(document.getElementById('sCal').value)||p.cal;p.p=Number(document.getElementById('sP').value)||p.p;p.c=Number(document.getElementById('sC').value)||p.c;p.f=Number(document.getElementById('sF').value)||p.f;
- getUser().weights.push({date:new Date().toISOString(),weight:p.weight,note:'Profil aktualisiert'});persist();toast('Profil gespeichert ✅')
+ const p=profile();
+ const val=id=>document.getElementById(id)?.value ?? '';
+ const num=(id,fallback)=>{const n=Number(val(id));return Number.isFinite(n)&&n>0?n:fallback};
+ const name=val('sName').trim(); if(name)p.name=name;
+ p.age=num('sAge',p.age||21); p.height=num('sHeight',p.height||175); p.weight=num('sWeight',p.weight||95.8);
+ p.sex=val('sSex')||p.sex||'male'; p.activity=Number(val('sActivity'))||p.activity||1.55; p.goal=val('sGoal')||p.goal||'lose';
+ p.cal=num('sCal',p.cal||2600); p.p=num('sP',p.p||190); p.c=num('sC',p.c||280); p.f=num('sF',p.f||75);
+ const u=getUser();
+ if(!Array.isArray(u.weights))u.weights=[];
+ u.weights.push({date:new Date().toISOString(),weight:p.weight,note:'Profil aktualisiert'});
+ accounts[currentId]=u;
+ try{saveAccounts();}catch(e){console.error(e);alert('Profil konnte nicht gespeichert werden. Bitte prüfe den freien Speicher im Browser.');return;}
+ fillSettings(); renderAll(); toast('Profil gespeichert ✅')
 }
 function calculateTargets(){
  const p=profile(),age=Number(document.getElementById('sAge').value)||21,h=Number(document.getElementById('sHeight').value)||175,w=Number(document.getElementById('sWeight').value)||95.8,a=Number(document.getElementById('sActivity').value)||1.55,g=document.getElementById('sGoal').value;
@@ -1006,6 +1020,7 @@ async function importHealthFile(event){
       if(file.size>100*1024*1024)throw new Error('Die CSV-Datei ist sehr groß. Für Apple Health bitte export.xml verwenden.');
       parsed=parseHealthCSV(await file.text());
     }else throw new Error('Bitte die entpackte export.xml, JSON oder CSV auswählen.');
+    if(!parsed || (parsed.daily && !Object.keys(parsed.daily).length)) throw new Error('Es wurden keine auswertbaren Health-Tagesdaten gefunden.');
     healthData=parsed;
     await saveHealthData(healthData);
     try{localStorage.setItem('fitai_health_meta',JSON.stringify({importedAt:new Date().toISOString(),summary:formatHealthImportSummary(parsed)}));}catch(e){}
