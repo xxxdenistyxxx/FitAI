@@ -171,7 +171,7 @@ h1,h2,h3{letter-spacing:-.2px}
 @media(max-width:520px){.anatomy-grid{grid-template-columns:1fr 1fr}.training-tools{position:sticky;top:0;z-index:4;background:#000;padding:7px 0}}
 
 .health-import-box{background:#0e0e10;border:1px solid #242429;border-radius:16px;padding:14px;margin-top:10px}.health-source-badge{display:inline-flex;align-items:center;gap:6px;background:#16131f;color:#cfc5ff;border:1px solid #3a2b72;padding:5px 9px;border-radius:999px;font-size:11px}.health-help ol{padding-left:20px}.health-help li{margin:9px 0;color:#b5b5bd}.health-date-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #222}.health-date-row:last-child{border-bottom:0}
-.health-grid{margin-top:14px}.health-card{min-height:108px}.health-card b{font-size:26px}.health-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}.health-detail-box{background:#111;border:1px solid #242424;border-radius:14px;padding:12px}.health-detail-box b{display:block;font-size:18px;margin-top:4px}.health-workout{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #222}.health-workout:last-child{border-bottom:0}.health-source{font-size:11px;color:#9b9b9b}.health-ok{border-color:#3a2b72}.health-ok .pill{background:#2a1b63;color:#cbbcff}
+.health-grid{margin-top:14px}.health-import-note{background:#111;border:1px solid #242424;border-radius:14px;padding:12px;margin-top:10px}.health-card{min-height:108px}.health-card b{font-size:26px}.health-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}.health-detail-box{background:#111;border:1px solid #242424;border-radius:14px;padding:12px}.health-detail-box b{display:block;font-size:18px;margin-top:4px}.health-workout{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #222}.health-workout:last-child{border-bottom:0}.health-source{font-size:11px;color:#9b9b9b}.health-ok{border-color:#3a2b72}.health-ok .pill{background:#2a1b63;color:#cbbcff}
 @media(max-width:430px){.health-details{grid-template-columns:1fr}.nav button{font-size:8px}.nav button span{font-size:15px}}
 </style>
 </head>
@@ -271,19 +271,24 @@ h1,h2,h3{letter-spacing:-.2px}
   <div class="section-title"><div><h2>❤️ Health & Apple Watch</h2><p class="muted small" style="margin:4px 0 0">Schritte, Schlaf, Workouts & Aktivität</p></div><button class="secondary" onclick="openHealthImport()">📥 Importieren</button></div>
   <div id="healthStatus" class="card">
     <h3>⌚ Apple Watch → Apple Health → FitAI Buddy</h3>
-    <p class="muted">In der GitHub-Pages-Version kann FitAI Buddy Apple Health nicht direkt auslesen. Du kannst deine Health-Daten aber als <b>export.xml</b>, JSON oder CSV importieren. Die Daten bleiben lokal in deinem Browser.</p>
+    <p class="muted">In der GitHub-Pages-Version kann FitAI Buddy Apple Health nicht direkt auslesen. Du kannst deine Health-Daten aber als <b>export.xml</b>, JSON oder CSV importieren. Der Import wird <b>komplett auf deinem Gerät</b> verarbeitet – die Health-Datei wird nicht zu GitHub hochgeladen.</p>
     <div class="actions"><button class="full" onclick="openHealthImport()">📥 Health-Daten importieren</button><button class="secondary" onclick="showHealthHelp()">ℹ️ So geht's</button></div>
     <input id="healthFileInput" type="file" accept=".xml,.json,.csv,text/xml,application/json,text/csv" style="display:none" onchange="importHealthFile(event)">
     <p class="tiny muted" style="margin-bottom:0">Tipp: In Apple Health über dein Profil → „Alle Gesundheitsdaten exportieren“ und anschließend <b>export.xml</b> auswählen.</p>
   </div>
-  <div class="grid health-grid">
-    <div class="metric health-card"><span>👟 Schritte</span><b id="healthSteps">–</b><span class="muted">heute</span></div>
-    <div class="metric health-card"><span>😴 Schlaf</span><b id="healthSleep">–</b><span class="muted" id="healthSleepDetail">heute Nacht</span></div>
-    <div class="metric health-card"><span>🏃 Workouts</span><b id="healthWorkouts">–</b><span class="muted">heute</span></div>
-    <div class="metric health-card"><span>🔥 Aktivkalorien</span><b id="healthCalories">–</b><span class="muted">heute</span></div>
+  <div class="card" id="healthDayCard" style="display:none">
+    <div class="section-title"><div><h3>📅 Health-Daten ansehen</h3><p class="muted small" style="margin:4px 0 0">Der Export enthält mehrere Tage. Wähle hier einen Tag aus.</p></div>
+      <select id="healthDaySelect" onchange="selectHealthDay(this.value)" style="max-width:150px"></select>
+    </div>
   </div>
-  <div class="card"><div class="section-title"><h3>❤️ Gesundheitsdaten</h3><span class="pill" id="healthUpdated">Noch nicht synchronisiert</span></div><div id="healthDetails" class="health-details"><div class="empty">Verbinde Apple Health, um weitere Daten wie Distanz, Herzfrequenz und Trainingsdetails anzuzeigen.</div></div></div>
-  <div class="card"><h3>🏋️ Apple-Workouts</h3><div id="healthWorkoutList"><div class="empty">Noch keine Apple-Workouts synchronisiert.</div></div></div>
+  <div class="grid health-grid">
+    <div class="metric health-card"><span>👟 Schritte</span><b id="healthSteps">–</b><span class="muted" id="healthStepsLabel">heute</span></div>
+    <div class="metric health-card"><span>😴 Schlaf</span><b id="healthSleep">–</b><span class="muted" id="healthSleepDetail">heute Nacht</span></div>
+    <div class="metric health-card"><span>🏃 Workouts</span><b id="healthWorkouts">–</b><span class="muted" id="healthWorkoutsLabel">heute</span></div>
+    <div class="metric health-card"><span>🔥 Aktivkalorien</span><b id="healthCalories">–</b><span class="muted" id="healthCaloriesLabel">heute</span></div>
+  </div>
+  <div class="card"><div class="section-title"><h3>❤️ Gesundheitsdaten</h3><span class="pill" id="healthUpdated">Noch nicht synchronisiert</span></div><div id="healthDetails" class="health-details"><div class="empty">Importiere deine export.xml, um deine Health-Daten anzuzeigen.</div></div></div>
+  <div class="card"><h3>🏋️ Apple-Workouts</h3><div id="healthWorkoutList"><div class="empty">Noch keine Apple-Workouts importiert.</div></div></div>
   <div class="card"><h3>🔐 Datenschutz</h3><p class="muted small">Der Import wird nur in deinem Browser verarbeitet. Es wird nichts automatisch an einen Server übertragen. Wenn du Daten löschst, kannst du den Health-Import hier ebenfalls zurücksetzen.</p><button class="danger" onclick="clearHealthData()">Health-Daten löschen</button></div>
 </section>
 
@@ -390,7 +395,7 @@ h1,h2,h3{letter-spacing:-.2px}
   <hr>
   <h3>So bekommst du die Daten vom iPhone</h3>
   <ol><li>Öffne <b>Apple Health</b> auf dem iPhone.</li><li>Tippe oben rechts auf dein <b>Profilbild</b>.</li><li>Wähle <b>Alle Gesundheitsdaten exportieren</b>.</li><li>Öffne die exportierte ZIP-Datei in der Dateien-App und entpacke sie.</li><li>Wähle hier die Datei <b>export.xml</b> aus.</li></ol>
-  <p class="tiny muted">FitAI Buddy liest daraus u. a. Schritte, Schlaf, aktive Energie, Geh-/Laufdistanz, Herzfrequenz, Trainingszeit und Workouts. Die Rohdatei wird nicht hochgeladen.</p>
+  <p class="tiny muted">FitAI Buddy liest daraus u. a. Schritte, Schlaf, aktive Energie, Geh-/Laufdistanz, Herzfrequenz, Trainingszeit und Workouts. Der bisherige Import zeigte nur den heutigen Tag; diese Version speichert die gefundenen Tage und du kannst sie anschließend auswählen. Die Rohdatei wird nicht hochgeladen.</p>
 </div></div>
 <div id="planModal" class="modal" onclick="if(event.target===this)closeModal('planModal')">
 <div class="sheet"><div class="section-title"><h2>Neuer Trainingsplan</h2><button class="secondary" onclick="closeModal('planModal')">✕</button></div><br>
@@ -487,31 +492,31 @@ const TRAINING_LIBRARY={
  }
 };
 const EXERCISE_META={
- bench:{image:'assets/bench_press.png',desc:'Klassische Grundübung für die Brust. Kontrollierte Bewegung und stabile Schulterblätter.',equipment:'Langhantel',muscles:['Großer Brustmuskel','Vorderer Schulterkopf','Trizeps'],steps:['Auf die Bank legen und die Schulterblätter nach hinten unten ziehen.','Stange etwas weiter als schulterbreit greifen.','Kontrolliert zur Brust absenken.','Kraftvoll nach oben drücken, ohne die Spannung zu verlieren.']},
- incline:{image:'assets/incline_press.png',desc:'Schrägbankdrücken betont besonders den oberen Brustbereich.',equipment:'Langhantel',muscles:['Oberer Brustbereich','Vordere Schulter','Trizeps'],steps:['Bank auf einen moderaten Winkel einstellen.','Schulterblätter stabilisieren und Füße fest aufstellen.','Stange kontrolliert zum oberen Brustbereich führen.','Ohne Schwung nach oben drücken.']},
- dbpress:{image:'assets/db_press.png',desc:'Kurzhanteldrücken erlaubt eine freie Bewegung der Arme und einen großen Bewegungsumfang.',equipment:'Kurzhanteln',muscles:['Brust','Vordere Schulter','Trizeps'],steps:['Kurzhanteln auf Brusthöhe positionieren.','Handgelenke stabil halten.','Hanteln kontrolliert absenken.','Nach oben drücken und die Brust aktiv anspannen.']},
- butterfly:{image:'assets/butterfly.png',desc:'Isolationsübung für die Brust mit konstantem Widerstand.',equipment:'Maschine',muscles:['Brust'],steps:['Sitz und Griffhöhe passend einstellen.','Brustkorb aufrecht halten.','Arme kontrolliert zusammenführen.','Langsam in die Ausgangsposition zurückkehren.']},
- pushup:{image:'assets/pushup.png',desc:'Körpergewichtsübung für Brust, Trizeps und Schulter.',equipment:'Körpergewicht',muscles:['Brust','Trizeps','Schulter'],steps:['Hände etwa schulterbreit aufsetzen.','Körper in einer geraden Linie halten.','Brust kontrolliert Richtung Boden absenken.','Kraftvoll zurück in die Ausgangsposition drücken.']},
- dips:{image:'assets/dips.png',desc:'Dips trainieren vor allem Trizeps und Brust.',equipment:'Körpergewicht',muscles:['Trizeps','Brust','Vordere Schulter'],steps:['Stabil in die Dip-Position kommen.','Ellenbogen kontrolliert beugen.','Nur so tief gehen, wie die Schulterbeweglichkeit es erlaubt.','Kraftvoll nach oben drücken.']},
- lat:{image:'assets/bench_press.png',desc:'Latziehen für den großen Rückenmuskel und die vertikale Zugbewegung.',equipment:'Kabelzug',muscles:['Latissimus','Bizeps','Oberer Rücken'],steps:['Stange etwas weiter als schulterbreit greifen.','Brust leicht anheben und Schultern tief halten.','Stange kontrolliert zur oberen Brust ziehen.','Langsam wieder nach oben führen.']},
- row:{image:'assets/incline_press.png',desc:'Rudern baut Zugkraft und Rückendicke auf.',equipment:'Kabelzug',muscles:['Latissimus','Rhomboiden','Hintere Schulter'],steps:['Rücken neutral halten.','Griff Richtung Bauchnabel ziehen.','Schulterblätter zusammenführen.','Kontrolliert strecken.']},
- pullup:{image:'assets/pushup.png',desc:'Klimmzüge sind eine anspruchsvolle Eigengewichtsübung für den Rücken.',equipment:'Klimmzugstange',muscles:['Latissimus','Bizeps','Oberer Rücken'],steps:['Stange fest greifen.','Schultern aktiv nach unten ziehen.','Körper nach oben ziehen, bis das Kinn die Stange erreicht.','Kontrolliert ablassen.']},
- facepull:{image:'assets/lateral_raise.png',desc:'Face Pulls stärken hintere Schulter und oberen Rücken.',equipment:'Kabelzug',muscles:['Hintere Schulter','Trapez','Rhomboiden'],steps:['Seil auf Gesichtshöhe einstellen.','Seil Richtung Gesicht ziehen.','Ellenbogen weit außen führen.','Langsam zurücklassen.']},
- ohp:{image:'assets/shoulder_press.png',desc:'Schulterdrücken für Kraft und Muskelaufbau der Schulter.',equipment:'Kurzhanteln / Maschine',muscles:['Schulter','Trizeps'],steps:['Gewichte auf Schulterhöhe starten.','Rumpf stabil halten.','Gewichte kontrolliert über Kopf drücken.','Nicht ins Hohlkreuz ausweichen.']},
- lateral:{image:'assets/lateral_raise.png',desc:'Seitheben trifft besonders die seitliche Schulter.',equipment:'Kurzhanteln',muscles:['Seitliche Schulter'],steps:['Arme leicht beugen.','Gewichte seitlich bis etwa Schulterhöhe heben.','Nicht aus dem Schwung arbeiten.','Langsam absenken.']},
- rear:{image:'assets/lateral_raise.png',desc:'Reverse Fly für die hintere Schulter und Schulterblattkontrolle.',equipment:'Kurzhanteln / Maschine',muscles:['Hintere Schulter','Oberer Rücken'],steps:['Oberkörper leicht nach vorne neigen.','Arme seitlich nach hinten führen.','Schulterblätter kontrolliert bewegen.','Langsam absenken.']},
- squat:{image:'assets/group_legs.png',desc:'Kniebeugen sind eine zentrale Mehrgelenksübung für die Beine.',equipment:'Langhantel',muscles:['Quadrizeps','Gesäß','Beinbeuger'],steps:['Füße etwa schulterbreit aufstellen.','Rumpf anspannen und Knie über die Fußrichtung führen.','Kontrolliert absenken.','Aus dem ganzen Fuß nach oben drücken.']},
- legpress:{image:'assets/group_legs.png',desc:'Beinpresse ermöglicht hohe Lasten mit stabiler Körperposition.',equipment:'Beinpresse',muscles:['Quadrizeps','Gesäß','Beinbeuger'],steps:['Rücken vollständig an die Lehne drücken.','Füße stabil auf der Plattform platzieren.','Gewicht kontrolliert absenken.','Kraftvoll zurückdrücken, ohne die Knie zu verriegeln.']},
- rdl:{image:'assets/group_legs.png',desc:'Rumänisches Kreuzheben für hintere Kette und Hüftstreckung.',equipment:'Langhantel / Kurzhanteln',muscles:['Beinbeuger','Gesäß','Rückenstrecker'],steps:['Knie leicht beugen.','Hüfte nach hinten schieben und Rücken neutral halten.','Gewicht nah am Körper führen.','Hüfte aktiv nach vorne strecken.']},
- legcurl:{image:'assets/group_legs.png',desc:'Beinbeuger-Maschine isoliert die hintere Oberschenkelmuskulatur.',equipment:'Maschine',muscles:['Beinbeuger'],steps:['Polster korrekt einstellen.','Ferse kontrolliert Richtung Gesäß ziehen.','Oben kurz Spannung halten.','Langsam strecken.']},
- legext:{image:'assets/group_legs.png',desc:'Beinstrecker isoliert den Quadrizeps.',equipment:'Maschine',muscles:['Quadrizeps'],steps:['Sitz und Polster einstellen.','Unterschenkel kontrolliert nach oben strecken.','Oben kurz halten.','Langsam absenken.']},
- calf:{image:'assets/group_legs.png',desc:'Wadenheben trainiert die Plantarflexion und Wadenmuskulatur.',equipment:'Maschine / Beinpresse',muscles:['Waden'],steps:['Fußballen stabil auf der Plattform positionieren.','Fersen kontrolliert absenken.','Über den Fußballen nach oben drücken.','Oben kurz halten.']},
+ bench:{image:'https://exercise-dataset.com/images/flat/bench-press-peak.webp',desc:'Klassische Grundübung für die Brust. Kontrollierte Bewegung und stabile Schulterblätter.',equipment:'Langhantel',muscles:['Großer Brustmuskel','Vorderer Schulterkopf','Trizeps'],steps:['Auf die Bank legen und die Schulterblätter nach hinten unten ziehen.','Stange etwas weiter als schulterbreit greifen.','Kontrolliert zur Brust absenken.','Kraftvoll nach oben drücken, ohne die Spannung zu verlieren.']},
+ incline:{image:'https://exercise-dataset.com/images/flat/incline-bench-press-peak.webp',desc:'Schrägbankdrücken betont besonders den oberen Brustbereich.',equipment:'Langhantel',muscles:['Oberer Brustbereich','Vordere Schulter','Trizeps'],steps:['Bank auf einen moderaten Winkel einstellen.','Schulterblätter stabilisieren und Füße fest aufstellen.','Stange kontrolliert zum oberen Brustbereich führen.','Ohne Schwung nach oben drücken.']},
+ dbpress:{image:'https://exercise-dataset.com/images/flat/db-bench-press-peak.webp',desc:'Kurzhanteldrücken erlaubt eine freie Bewegung der Arme und einen großen Bewegungsumfang.',equipment:'Kurzhanteln',muscles:['Brust','Vordere Schulter','Trizeps'],steps:['Kurzhanteln auf Brusthöhe positionieren.','Handgelenke stabil halten.','Hanteln kontrolliert absenken.','Nach oben drücken und die Brust aktiv anspannen.']},
+ butterfly:{image:'https://exercise-dataset.com/images/flat/machine-chest-fly-peak.webp',desc:'Isolationsübung für die Brust mit konstantem Widerstand.',equipment:'Maschine',muscles:['Brust'],steps:['Sitz und Griffhöhe passend einstellen.','Brustkorb aufrecht halten.','Arme kontrolliert zusammenführen.','Langsam in die Ausgangsposition zurückkehren.']},
+ pushup:{image:'https://exercise-dataset.com/images/flat/push-up-peak.webp',desc:'Körpergewichtsübung für Brust, Trizeps und Schulter.',equipment:'Körpergewicht',muscles:['Brust','Trizeps','Schulter'],steps:['Hände etwa schulterbreit aufsetzen.','Körper in einer geraden Linie halten.','Brust kontrolliert Richtung Boden absenken.','Kraftvoll zurück in die Ausgangsposition drücken.']},
+ dips:{image:'https://exercise-dataset.com/images/flat/dips-peak.webp',desc:'Dips trainieren vor allem Trizeps und Brust.',equipment:'Körpergewicht',muscles:['Trizeps','Brust','Vordere Schulter'],steps:['Stabil in die Dip-Position kommen.','Ellenbogen kontrolliert beugen.','Nur so tief gehen, wie die Schulterbeweglichkeit es erlaubt.','Kraftvoll nach oben drücken.']},
+ lat:{image:'https://exercise-dataset.com/images/flat/lat-pulldown-peak.webp',desc:'Latziehen für den großen Rückenmuskel und die vertikale Zugbewegung.',equipment:'Kabelzug',muscles:['Latissimus','Bizeps','Oberer Rücken'],steps:['Stange etwas weiter als schulterbreit greifen.','Brust leicht anheben und Schultern tief halten.','Stange kontrolliert zur oberen Brust ziehen.','Langsam wieder nach oben führen.']},
+ row:{image:'https://exercise-dataset.com/images/flat/seated-cable-row-peak.webp',desc:'Rudern baut Zugkraft und Rückendicke auf.',equipment:'Kabelzug',muscles:['Latissimus','Rhomboiden','Hintere Schulter'],steps:['Rücken neutral halten.','Griff Richtung Bauchnabel ziehen.','Schulterblätter zusammenführen.','Kontrolliert strecken.']},
+ pullup:{image:'https://exercise-dataset.com/images/flat/pull-up-peak.webp',desc:'Klimmzüge sind eine anspruchsvolle Eigengewichtsübung für den Rücken.',equipment:'Klimmzugstange',muscles:['Latissimus','Bizeps','Oberer Rücken'],steps:['Stange fest greifen.','Schultern aktiv nach unten ziehen.','Körper nach oben ziehen, bis das Kinn die Stange erreicht.','Kontrolliert ablassen.']},
+ facepull:{image:'https://exercise-dataset.com/images/flat/face-pull-peak.webp',desc:'Face Pulls stärken hintere Schulter und oberen Rücken.',equipment:'Kabelzug',muscles:['Hintere Schulter','Trapez','Rhomboiden'],steps:['Seil auf Gesichtshöhe einstellen.','Seil Richtung Gesicht ziehen.','Ellenbogen weit außen führen.','Langsam zurücklassen.']},
+ ohp:{image:'https://exercise-dataset.com/images/flat/ohp-peak.webp',desc:'Schulterdrücken für Kraft und Muskelaufbau der Schulter.',equipment:'Kurzhanteln / Maschine',muscles:['Schulter','Trizeps'],steps:['Gewichte auf Schulterhöhe starten.','Rumpf stabil halten.','Gewichte kontrolliert über Kopf drücken.','Nicht ins Hohlkreuz ausweichen.']},
+ lateral:{image:'https://exercise-dataset.com/images/flat/lateral-raise-peak.webp',desc:'Seitheben trifft besonders die seitliche Schulter.',equipment:'Kurzhanteln',muscles:['Seitliche Schulter'],steps:['Arme leicht beugen.','Gewichte seitlich bis etwa Schulterhöhe heben.','Nicht aus dem Schwung arbeiten.','Langsam absenken.']},
+ rear:{image:'https://exercise-dataset.com/images/flat/dumbbell-reverse-fly-peak.webp',desc:'Reverse Fly für die hintere Schulter und Schulterblattkontrolle.',equipment:'Kurzhanteln / Maschine',muscles:['Hintere Schulter','Oberer Rücken'],steps:['Oberkörper leicht nach vorne neigen.','Arme seitlich nach hinten führen.','Schulterblätter kontrolliert bewegen.','Langsam absenken.']},
+ squat:{image:'https://exercise-dataset.com/images/flat/squat-peak.webp',desc:'Kniebeugen sind eine zentrale Mehrgelenksübung für die Beine.',equipment:'Langhantel',muscles:['Quadrizeps','Gesäß','Beinbeuger'],steps:['Füße etwa schulterbreit aufstellen.','Rumpf anspannen und Knie über die Fußrichtung führen.','Kontrolliert absenken.','Aus dem ganzen Fuß nach oben drücken.']},
+ legpress:{image:'https://exercise-dataset.com/images/flat/leg-press-peak.webp',desc:'Beinpresse ermöglicht hohe Lasten mit stabiler Körperposition.',equipment:'Beinpresse',muscles:['Quadrizeps','Gesäß','Beinbeuger'],steps:['Rücken vollständig an die Lehne drücken.','Füße stabil auf der Plattform platzieren.','Gewicht kontrolliert absenken.','Kraftvoll zurückdrücken, ohne die Knie zu verriegeln.']},
+ rdl:{image:'https://exercise-dataset.com/images/flat/romanian-deadlift-peak.webp',desc:'Rumänisches Kreuzheben für hintere Kette und Hüftstreckung.',equipment:'Langhantel / Kurzhanteln',muscles:['Beinbeuger','Gesäß','Rückenstrecker'],steps:['Knie leicht beugen.','Hüfte nach hinten schieben und Rücken neutral halten.','Gewicht nah am Körper führen.','Hüfte aktiv nach vorne strecken.']},
+ legcurl:{image:'https://exercise-dataset.com/images/flat/barbell-curl-peak.webp',desc:'Beinbeuger-Maschine isoliert die hintere Oberschenkelmuskulatur.',equipment:'Maschine',muscles:['Beinbeuger'],steps:['Polster korrekt einstellen.','Ferse kontrolliert Richtung Gesäß ziehen.','Oben kurz Spannung halten.','Langsam strecken.']},
+ legext:{image:'https://exercise-dataset.com/images/flat/leg-extension-peak.webp',desc:'Beinstrecker isoliert den Quadrizeps.',equipment:'Maschine',muscles:['Quadrizeps'],steps:['Sitz und Polster einstellen.','Unterschenkel kontrolliert nach oben strecken.','Oben kurz halten.','Langsam absenken.']},
+ calf:{image:'https://exercise-dataset.com/images/flat/standing-calf-raise-peak.webp',desc:'Wadenheben trainiert die Plantarflexion und Wadenmuskulatur.',equipment:'Maschine / Beinpresse',muscles:['Waden'],steps:['Fußballen stabil auf der Plattform positionieren.','Fersen kontrolliert absenken.','Über den Fußballen nach oben drücken.','Oben kurz halten.']},
  curl:{image:'assets/shoulder_press.png',desc:'Bizepscurls für direkten Bizepsreiz.',equipment:'Kurzhanteln / Langhantel',muscles:['Bizeps'],steps:['Ellenbogen nah am Körper halten.','Hantel ohne Schwung nach oben curlen.','Oben kurz anspannen.','Kontrolliert absenken.']},
- hammer:{image:'assets/shoulder_press.png',desc:'Hammercurls trainieren Bizeps und Brachialis.',equipment:'Kurzhanteln',muscles:['Bizeps','Brachialis'],steps:['Neutralen Griff halten.','Ellenbogen ruhig halten.','Hanteln kontrolliert nach oben führen.','Langsam absenken.']},
- pushdown:{image:'assets/tricep_pushdown.png',desc:'Trizepsdrücken am Kabel für einen direkten Trizepsreiz.',equipment:'Kabelzug',muscles:['Trizeps'],steps:['Ellenbogen dicht am Körper halten.','Griff nach unten drücken.','Unten kurz strecken und anspannen.','Kontrolliert zurückführen.']},
- overhead:{image:'assets/tricep_pushdown.png',desc:'Überkopfdrücken trainiert den Trizeps über einen großen Bewegungsumfang.',equipment:'Kabelzug / Kurzhantel',muscles:['Trizeps'],steps:['Oberarme stabil halten.','Gewicht hinter den Kopf absenken.','Trizeps kontrolliert strecken.','Langsam zurückführen.']},
- crunch:{image:'assets/group_abs.png',desc:'Crunches trainieren die Bauchmuskulatur mit kontrollierter Wirbelsäulenbeugung.',equipment:'Körpergewicht',muscles:['Bauch'],steps:['Rücken bequem ablegen und Bauch anspannen.','Schultern kontrolliert vom Boden lösen.','Bauch aktiv zusammenziehen.','Langsam ablegen.']},
- legraise:{image:'assets/group_abs.png',desc:'Beinheben beansprucht besonders den unteren Bauchbereich und die Hüftbeuger.',equipment:'Körpergewicht',muscles:['Bauch','Hüftbeuger'],steps:['Beine kontrolliert starten lassen.','Beine ohne Schwung anheben.','Becken leicht einrollen.','Langsam absenken.']}
+ hammer:{image:'https://exercise-dataset.com/images/flat/hammer-curl-peak.webp',desc:'Hammercurls trainieren Bizeps und Brachialis.',equipment:'Kurzhanteln',muscles:['Bizeps','Brachialis'],steps:['Neutralen Griff halten.','Ellenbogen ruhig halten.','Hanteln kontrolliert nach oben führen.','Langsam absenken.']},
+ pushdown:{image:'https://exercise-dataset.com/images/flat/tricep-pushdown-peak.webp',desc:'Trizepsdrücken am Kabel für einen direkten Trizepsreiz.',equipment:'Kabelzug',muscles:['Trizeps'],steps:['Ellenbogen dicht am Körper halten.','Griff nach unten drücken.','Unten kurz strecken und anspannen.','Kontrolliert zurückführen.']},
+ overhead:{image:'https://exercise-dataset.com/images/flat/overhead-tricep-extension-peak.webp',desc:'Überkopfdrücken trainiert den Trizeps über einen großen Bewegungsumfang.',equipment:'Kabelzug / Kurzhantel',muscles:['Trizeps'],steps:['Oberarme stabil halten.','Gewicht hinter den Kopf absenken.','Trizeps kontrolliert strecken.','Langsam zurückführen.']},
+ crunch:{image:'https://exercise-dataset.com/images/flat/crunches-peak.webp',desc:'Crunches trainieren die Bauchmuskulatur mit kontrollierter Wirbelsäulenbeugung.',equipment:'Körpergewicht',muscles:['Bauch'],steps:['Rücken bequem ablegen und Bauch anspannen.','Schultern kontrolliert vom Boden lösen.','Bauch aktiv zusammenziehen.','Langsam ablegen.']},
+ legraise:{image:'https://exercise-dataset.com/images/flat/lying-leg-raise-peak.webp',desc:'Beinheben beansprucht besonders den unteren Bauchbereich und die Hüftbeuger.',equipment:'Körpergewicht',muscles:['Bauch','Hüftbeuger'],steps:['Beine kontrolliert starten lassen.','Beine ohne Schwung anheben.','Becken leicht einrollen.','Langsam absenken.']}
 };
 let trainingMode='groups',selectedMuscle=null,trainingSearch='',equipmentFilter='Alle',favoriteOnly=false;
 
@@ -526,23 +531,25 @@ function ensureExerciseMetadata(){
 }
 function exerciseById(id){return getUser().exercises.find(e=>e.id===id)||defaultExercises.find(e=>e.id===id)}
 function exerciseImage(id){return EXERCISE_META[id]?.image||'assets/group_chest.png'}
+function exerciseImgTag(id,alt=''){const remote=exerciseImage(id),local=EXERCISE_META[id]?.fallback||'assets/group_chest.png';return `<img src="${remote}" alt="${esc(alt)}" loading="lazy" onerror="this.onerror=null;this.src='${local}'">`}
 function exerciseDescription(id){return EXERCISE_META[id]?.desc||'Kraftübung mit kontrollierter Ausführung.'}
 function setTrainingMode(mode){trainingMode=mode;selectedMuscle=null;document.querySelectorAll('.training-tab').forEach(b=>b.classList.toggle('active',b.dataset.tmode===mode));renderTrainingBrowser()}
 function selectMuscle(name){selectedMuscle=name;trainingMode='muscle';document.querySelectorAll('.training-tab').forEach(b=>b.classList.remove('active'));renderTrainingBrowser()}
 function renderTrainingBrowser(){
  const el=document.getElementById('trainingBrowser');if(!el)return;ensureExerciseMetadata();
  const tools=`<div class="training-tools"><input class="training-search" placeholder="🔎 Übung suchen..." value="${esc(trainingSearch)}" oninput="trainingSearch=this.value;renderTrainingBrowser()"><button class="filter-chip ${equipmentFilter==='Alle'?'active':''}" onclick="setEquipmentFilter('Alle')">Alle</button><button class="filter-chip ${equipmentFilter==='Langhantel'?'active':''}" onclick="setEquipmentFilter('Langhantel')">Langhantel</button><button class="filter-chip ${equipmentFilter==='Kurzhanteln'?'active':''}" onclick="setEquipmentFilter('Kurzhanteln')">Kurzhantel</button><button class="filter-chip ${equipmentFilter==='Maschine'?'active':''}" onclick="setEquipmentFilter('Maschine')">Maschine</button><button class="filter-chip ${equipmentFilter==='Kabelzug'?'active':''}" onclick="setEquipmentFilter('Kabelzug')">Kabel</button><button class="filter-chip ${favoriteOnly?'active':''}" onclick="favoriteOnly=!favoriteOnly;renderTrainingBrowser()">⭐ Favoriten</button></div>`;
+ const imageCredit=`<div class="muted tiny" style="margin:6px 2px 10px">Übungsbilder: <a href="https://repdb.co" target="_blank" rel="noopener" style="color:#a78bfa">RepDB</a> · freie In-App-Nutzung mit Namensnennung</div>`;
  if(trainingMode==='groups'){
   const groups=Object.entries(TRAINING_LIBRARY).filter(([name,g])=>(!trainingSearch||name.toLowerCase().includes(trainingSearch.toLowerCase())||g.desc.toLowerCase().includes(trainingSearch.toLowerCase())));
-  el.innerHTML=`<div class="card"><div class="section-title"><div><h3>Muskelgruppen</h3><span class="muted small">Wähle eine Muskelgruppe und entdecke passende Übungen.</span></div></div>${tools}<div class="muscle-grid" style="margin-top:13px">${groups.map(([name,g])=>`<div class="muscle-card" onclick="selectMuscle('${name}')"><img src="${g.image}" alt="${name}"><div class="mc-copy"><b>${name}</b><span>${g.exercises.length} Übungen · ansehen →</span></div></div>`).join('')}</div></div>`;
+  el.innerHTML=`<div class="card"><div class="section-title"><div><h3>Muskelgruppen</h3><span class="muted small">Wähle eine Muskelgruppe und entdecke passende Übungen.</span></div></div>${tools}${imageCredit}<div class="muscle-grid" style="margin-top:13px">${groups.map(([name,g])=>`<div class="muscle-card" onclick="selectMuscle('${name}')"><img src="${g.image}" alt="${name}"><div class="mc-copy"><b>${name}</b><span>${g.exercises.length} Übungen · ansehen →</span></div></div>`).join('')}</div></div>`;
  } else if(trainingMode==='muscle'){
   const g=TRAINING_LIBRARY[selectedMuscle];
   let ex=g.exercises.map(exerciseById).filter(Boolean);
   ex=ex.filter(e=>{const m=EXERCISE_META[e.id]||{};const q=trainingSearch.toLowerCase();return (!q||e.name.toLowerCase().includes(q)||e.muscle.toLowerCase().includes(q)||exerciseDescription(e.id).toLowerCase().includes(q))&& (equipmentFilter==='Alle'||(m.equipment||'').toLowerCase().includes(equipmentFilter.toLowerCase().replace('kurzhanteln','kurzhantel').replace('kabelzug','kabel')))&&( !favoriteOnly || !!e.favorite)});
-  el.innerHTML=`<div class="section-title" style="margin:8px 0"><button class="back-link" onclick="setTrainingMode('groups')">‹ Muskelgruppen</button><span class="pill">${ex.length} Übungen</span></div><div class="card"><div style="display:flex;gap:14px;align-items:center"><img src="${g.image}" style="width:92px;height:92px;border-radius:14px;object-fit:cover"><div><h2 style="margin:0 0 5px">${selectedMuscle}</h2><p class="muted small" style="margin:0">${g.desc}</p></div></div></div>${tools}<div class="library-head"><h3>Übungen</h3><span class="library-count">Foto · Anleitung · Historie</span></div><div class="exercise-library">${ex.length?ex.map(e=>exerciseCard(e)).join(''):'<div class="empty-state">Keine Übung passt zu deinem Filter.</div>'}</div>`;
+  el.innerHTML=`<div class="section-title" style="margin:8px 0"><button class="back-link" onclick="setTrainingMode('groups')">‹ Muskelgruppen</button><span class="pill">${ex.length} Übungen</span></div><div class="card"><div style="display:flex;gap:14px;align-items:center"><img src="${g.image}" style="width:92px;height:92px;border-radius:14px;object-fit:cover"><div><h2 style="margin:0 0 5px">${selectedMuscle}</h2><p class="muted small" style="margin:0">${g.desc}</p></div></div></div>${tools}${imageCredit}<div class="library-head"><h3>Übungen</h3><span class="library-count">Foto · Anleitung · Historie</span></div><div class="exercise-library">${ex.length?ex.map(e=>exerciseCard(e)).join(''):'<div class="empty-state">Keine Übung passt zu deinem Filter.</div>'}</div>`;
  } else if(trainingMode==='all'){
   let ex=getUser().exercises;ex=ex.filter(e=>{const m=EXERCISE_META[e.id]||{};const q=trainingSearch.toLowerCase();return (!q||e.name.toLowerCase().includes(q)||e.muscle.toLowerCase().includes(q))&&(equipmentFilter==='Alle'||(m.equipment||'').toLowerCase().includes(equipmentFilter.toLowerCase().replace('kurzhanteln','kurzhantel').replace('kabelzug','kabel')))&&(!favoriteOnly||!!e.favorite)});
-  el.innerHTML=`<div class="card"><div class="library-head" style="margin-top:0"><h3>📚 Übungsbibliothek</h3><span class="library-count">${ex.length} Übungen</span></div>${tools}<div class="exercise-library">${ex.length?ex.map(e=>exerciseCard(e)).join(''):'<div class="empty-state">Keine Übung gefunden.</div>'}</div></div>`;
+  el.innerHTML=`<div class="card"><div class="library-head" style="margin-top:0"><h3>📚 Übungsbibliothek</h3><span class="library-count">${ex.length} Übungen</span></div>${tools}${imageCredit}<div class="exercise-library">${ex.length?ex.map(e=>exerciseCard(e)).join(''):'<div class="empty-state">Keine Übung gefunden.</div>'}</div></div>`;
  } else if(trainingMode==='plans'){
   const u=getUser();el.innerHTML=`<div class="card"><div class="section-title"><h3>Meine Trainingspläne</h3><button class="secondary" onclick="openModal('planModal')">+ Plan</button></div>${u.plans.length?u.plans.slice().reverse().map(p=>`<div class="row"><div class="row-main"><b>${esc(p.name)}</b><span class="muted small">${p.exercises.length} Übungen</span></div><button class="secondary" onclick="activatePlan('${p.id}')">Auswählen</button></div>`).join(''):'<div class="empty">Noch kein Plan vorhanden.</div>'}</div>`;
  } else if(trainingMode==='history'){
@@ -551,8 +558,8 @@ function renderTrainingBrowser(){
 }
 function setEquipmentFilter(v){equipmentFilter=v;renderTrainingBrowser()}
 function toggleFavorite(id){const e=exerciseById(id);if(!e)return;e.favorite=!e.favorite;persist();renderTrainingBrowser();toast(e.favorite?'⭐ Zu Favoriten hinzugefügt':'Aus Favoriten entfernt')}
-function exerciseCard(e){const m=EXERCISE_META[e.id]||{};return `<div class="library-card" onclick="openExerciseDetail('${e.id}')"><img src="${exerciseImage(e.id)}" alt="${esc(e.name)}"><div><h3>${esc(e.name)}</h3><p>${esc(e.muscle)}</p><div class="exercise-meta-line"><span>${esc(m.equipment||'Krafttraining')}</span><span>${(m.muscles||[]).length} Muskeln</span></div></div><button class="fav-btn ${e.favorite?'active':''}" onclick="event.stopPropagation();toggleFavorite('${e.id}')">${e.favorite?'★':'☆'}</button></div>`}
-function openExerciseDetail(id){const e=exerciseById(id),m=EXERCISE_META[id]||{};if(!e)return;const sets=getUser().workouts.flatMap(w=>(w.entries||[]).map(s=>({...s,date:w.date,plan:w.plan}))).filter(s=>s.exerciseId===id).reverse();const max=sets.length?Math.max(...sets.map(s=>Number(s.weight)||0)):0;const volume=sets.reduce((a,s)=>a+(Number(s.weight)||0)*(Number(s.reps)||0),0);const group=Object.entries(TRAINING_LIBRARY).find(([n,g])=>g.exercises.includes(id));document.getElementById('exerciseDetailSheet').innerHTML=`<div class="section-title"><button class="back-link" onclick="closeModal('exerciseDetailModal')">‹ Training</button><div style="display:flex;gap:7px"><button class="fav-btn ${e.favorite?'active':''}" onclick="toggleFavorite('${id}');openExerciseDetail('${id}')">${e.favorite?'★':'☆'}</button><button class="secondary" onclick="openSetFor('${id}');closeModal('exerciseDetailModal')">+ Satz</button></div></div><br><div class="exercise-hero"><div class="exercise-hero-media"><img src="${exerciseImage(id)}" alt="${esc(e.name)}"></div><div class="exercise-hero-body"><h2>${esc(e.name)}</h2><div class="tag-row"><span class="pill">${esc(e.muscle)}</span><span class="pill">${esc(m.equipment||'Krafttraining')}</span></div><p>${esc(exerciseDescription(id))}</p><div class="stat-grid"><div class="stat-box"><span class="muted tiny">BESTES GEWICHT</span><b>${max?max+' kg':'–'}</b></div><div class="stat-box"><span class="muted tiny">SÄTZE GESAMT</span><b>${sets.length}</b></div><div class="stat-box"><span class="muted tiny">VOLUMEN</span><b>${volume?Math.round(volume).toLocaleString('de-DE')+' kg':'–'}</b></div></div></div></div><div class="card"><h3>📖 Kurze Ausführung</h3>${(m.steps||[]).map((x,i)=>`<div class="instruction"><span class="instruction-num">${i+1}</span><span>${esc(x)}</span></div>`).join('')}</div><div class="card"><h3>💪 Trainierte Muskeln</h3><div class="anatomy-grid"><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Hauptmuskel</b><div class="muted small">${esc((m.muscles||[e.muscle])[0])}</div></div><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Nebenmuskeln</b><div class="muted small">${esc((m.muscles||[e.muscle]).slice(1).join(' · ')||'–')}</div></div></div></div><div class="card"><div class="section-title"><h3>📈 Deine komplette Historie</h3><span class="library-count">${sets.length} Einträge</span></div>${sets.length?`<div class="history-table"><table><thead><tr><th>Datum</th><th>Plan</th><th>Gewicht</th><th>Wdh.</th><th>RIR</th></tr></thead><tbody>${sets.map(s=>`<tr><td>${new Date(s.date).toLocaleDateString('de-DE')}</td><td>${esc(s.plan||'Workout')}</td><td>${s.weight} kg</td><td>${s.reps}</td><td>${s.rir}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Noch keine Daten. Protokolliere den ersten Satz und deine Historie baut sich automatisch auf.</div>'}</div>`;openModal('exerciseDetailModal')}
+function exerciseCard(e){const m=EXERCISE_META[e.id]||{};return `<div class="library-card" onclick="openExerciseDetail('${e.id}')">${exerciseImgTag(e.id,e.name)}<div><h3>${esc(e.name)}</h3><p>${esc(e.muscle)}</p><div class="exercise-meta-line"><span>${esc(m.equipment||'Krafttraining')}</span><span>${(m.muscles||[]).length} Muskeln</span></div></div><button class="fav-btn ${e.favorite?'active':''}" onclick="event.stopPropagation();toggleFavorite('${e.id}')">${e.favorite?'★':'☆'}</button></div>`}
+function openExerciseDetail(id){const e=exerciseById(id),m=EXERCISE_META[id]||{};if(!e)return;const sets=getUser().workouts.flatMap(w=>(w.entries||[]).map(s=>({...s,date:w.date,plan:w.plan}))).filter(s=>s.exerciseId===id).reverse();const max=sets.length?Math.max(...sets.map(s=>Number(s.weight)||0)):0;const volume=sets.reduce((a,s)=>a+(Number(s.weight)||0)*(Number(s.reps)||0),0);const group=Object.entries(TRAINING_LIBRARY).find(([n,g])=>g.exercises.includes(id));document.getElementById('exerciseDetailSheet').innerHTML=`<div class="section-title"><button class="back-link" onclick="closeModal('exerciseDetailModal')">‹ Training</button><div style="display:flex;gap:7px"><button class="fav-btn ${e.favorite?'active':''}" onclick="toggleFavorite('${id}');openExerciseDetail('${id}')">${e.favorite?'★':'☆'}</button><button class="secondary" onclick="openSetFor('${id}');closeModal('exerciseDetailModal')">+ Satz</button></div></div><br><div class="exercise-hero"><div class="exercise-hero-media">${exerciseImgTag(id,e.name)}</div><div class="exercise-hero-body"><h2>${esc(e.name)}</h2><div class="tag-row"><span class="pill">${esc(e.muscle)}</span><span class="pill">${esc(m.equipment||'Krafttraining')}</span></div><p>${esc(exerciseDescription(id))}</p><div class="stat-grid"><div class="stat-box"><span class="muted tiny">BESTES GEWICHT</span><b>${max?max+' kg':'–'}</b></div><div class="stat-box"><span class="muted tiny">SÄTZE GESAMT</span><b>${sets.length}</b></div><div class="stat-box"><span class="muted tiny">VOLUMEN</span><b>${volume?Math.round(volume).toLocaleString('de-DE')+' kg':'–'}</b></div></div></div></div><div class="card"><h3>📖 Kurze Ausführung</h3>${(m.steps||[]).map((x,i)=>`<div class="instruction"><span class="instruction-num">${i+1}</span><span>${esc(x)}</span></div>`).join('')}</div><div class="card"><h3>💪 Trainierte Muskeln</h3><div class="anatomy-grid"><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Hauptmuskel</b><div class="muted small">${esc((m.muscles||[e.muscle])[0])}</div></div><div class="anatomy-box"><img src="${group?group[1].image:exerciseImage(id)}"><b>Nebenmuskeln</b><div class="muted small">${esc((m.muscles||[e.muscle]).slice(1).join(' · ')||'–')}</div></div></div></div><div class="card"><div class="section-title"><h3>📈 Deine komplette Historie</h3><span class="library-count">${sets.length} Einträge</span></div>${sets.length?`<div class="history-table"><table><thead><tr><th>Datum</th><th>Plan</th><th>Gewicht</th><th>Wdh.</th><th>RIR</th></tr></thead><tbody>${sets.map(s=>`<tr><td>${new Date(s.date).toLocaleDateString('de-DE')}</td><td>${esc(s.plan||'Workout')}</td><td>${s.weight} kg</td><td>${s.reps}</td><td>${s.rir}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Noch keine Daten. Protokolliere den ersten Satz und deine Historie baut sich automatisch auf.</div>'}</div>`;openModal('exerciseDetailModal')}
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function getUser(){return currentId?accounts[currentId]:null}
@@ -604,53 +611,240 @@ function openHealthImport(){document.getElementById('healthImportModal').classLi
 function showHealthHelp(){openHealthImport()}
 function clearHealthData(){if(confirm('Importierte Health-Daten wirklich löschen?')){healthData=null;localStorage.removeItem('fitai_health');renderHealth();toast('Health-Daten gelöscht')}}
 function startOfToday(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
+function dateKey(d){const x=new Date(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`}
+function dateLabel(key){const [y,m,d]=String(key).split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}
 function isTodayRange(start,end){const s=new Date(start),e=end?new Date(end):s,t=startOfToday(),tomorrow=new Date(t);tomorrow.setDate(tomorrow.getDate()+1);return s<tomorrow&&e>=t}
 function durationHours(a,b){return Math.max(0,(new Date(b)-new Date(a))/3600000)}
-function prettyWorkoutName(name){return String(name||'').replace(/^HKWorkoutActivityType/,'').replace(/([a-z])([A-Z])/g,'$1 $2')||'Workout'}
-function normalizeHealthPayload(data){if(!data)return null;if(data.fitaiHealth)return normalizeHealthPayload(data.fitaiHealth);if(Array.isArray(data.records))return parseGenericHealthRecords(data.records,data.workouts||[]);const out={...data};out.updatedAt=Date.now();out.workouts=Array.isArray(out.workouts)?out.workouts:[];if(out.steps==null&&out.stepCount!=null)out.steps=out.stepCount;if(out.sleepHours==null&&out.sleep!=null)out.sleepHours=Number(out.sleep);return out}
-function parseGenericHealthRecords(records,workoutRecords=[]){let steps=0,activeCalories=0,distanceKm=0,exerciseMinutes=0,hrSum=0,hrCount=0,sleepMs=0;const workouts=[];for(const r of records){const type=String(r.type||r.identifier||''),start=r.start||r.startDate||r.date,end=r.end||r.endDate||r.date;if(!start||!isTodayRange(start,end))continue;const v=Number(r.value)||0;if(/StepCount/i.test(type))steps+=v;else if(/ActiveEnergyBurned|ActiveEnergy/i.test(type))activeCalories+=v;else if(/DistanceWalkingRunning/i.test(type))distanceKm+=v/1000;else if(/AppleExerciseTime|ExerciseTime/i.test(type))exerciseMinutes+=v;else if(/HeartRate/i.test(type)){hrSum+=v;hrCount++}else if(/SleepAnalysis|Sleep/i.test(type)&&end&&start)sleepMs+=Math.max(0,new Date(end)-new Date(start))}for(const w of workoutRecords){const start=w.start||w.startDate,end=w.end||w.endDate;if(start&&isTodayRange(start,end||start))workouts.push({name:prettyWorkoutName(w.name||w.activityType),date:start,durationMin:Math.round(durationHours(start,end||start)*60),calories:Number(w.calories||w.totalEnergyBurned||0),source:w.source||'Apple Watch'})}return{steps:Math.round(steps),activeCalories:Math.round(activeCalories),distanceKm:Number(distanceKm.toFixed(2)),exerciseMinutes:Math.round(exerciseMinutes),avgHeartRate:hrCount?Math.round(hrSum/hrCount):null,sleepHours:Number((sleepMs/3600000).toFixed(2)),workoutsToday:workouts.length,workouts,updatedAt:Date.now(),source:'Health-Import'}}
-function parseAppleHealthXML(text){const xml=new DOMParser().parseFromString(text,'application/xml');if(xml.querySelector('parsererror'))throw new Error('Die XML-Datei konnte nicht gelesen werden.');const records=[...xml.getElementsByTagName('Record')],workouts=[...xml.getElementsByTagName('Workout')];let steps=0,activeCalories=0,distanceKm=0,exerciseMinutes=0,hrSum=0,hrCount=0,sleepMs=0;const today=startOfToday(),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);for(const r of records){const type=r.getAttribute('type')||'',start=r.getAttribute('startDate'),end=r.getAttribute('endDate')||start;if(!start)continue;const s=new Date(start),e=new Date(end);if(s>=tomorrow||e<today)continue;const v=Number(r.getAttribute('value'))||0;if(type==='HKQuantityTypeIdentifierStepCount')steps+=v;else if(type==='HKQuantityTypeIdentifierActiveEnergyBurned')activeCalories+=v;else if(type==='HKQuantityTypeIdentifierDistanceWalkingRunning')distanceKm+=v/1000;else if(type==='HKQuantityTypeIdentifierAppleExerciseTime')exerciseMinutes+=v;else if(type==='HKQuantityTypeIdentifierHeartRate'){hrSum+=v;hrCount++}else if(type==='HKCategoryTypeIdentifierSleepAnalysis')sleepMs+=Math.max(0,e-s)}const ws=workouts.filter(w=>{const s=w.getAttribute('startDate'),e=w.getAttribute('endDate')||s;return s&&isTodayRange(s,e)}).map(w=>({name:prettyWorkoutName(w.getAttribute('workoutActivityType')),date:w.getAttribute('startDate'),durationMin:Math.round(durationHours(w.getAttribute('startDate'),w.getAttribute('endDate'))*60),calories:Number(w.getAttribute('totalEnergyBurned'))||0,source:w.getAttribute('sourceName')||'Apple Watch'}));return{steps:Math.round(steps),activeCalories:Math.round(activeCalories),distanceKm:Number(distanceKm.toFixed(2)),exerciseMinutes:Math.round(exerciseMinutes),avgHeartRate:hrCount?Math.round(hrSum/hrCount):null,sleepHours:Number((sleepMs/3600000).toFixed(2)),workoutsToday:ws.length,workouts:ws,updatedAt:Date.now(),source:'Apple Health export.xml'}}
-function parseHealthCSV(text){const lines=text.trim().split(/\\r?\\n/).filter(Boolean);if(lines.length<2)throw new Error('CSV enthält keine Daten.');const headers=lines.shift().split(',').map(x=>x.trim().toLowerCase());const records=lines.map(line=>{const cols=line.split(',');const o={};headers.forEach((h,i)=>o[h]=cols[i]?.trim());return o});return normalizeHealthPayload({records})}
-async function importHealthFile(event){const file=event.target.files?.[0];if(!file)return;try{const text=await file.text();let parsed;const ext=file.name.toLowerCase().split('.').pop();if(ext==='xml')parsed=parseAppleHealthXML(text);else if(ext==='json')parsed=normalizeHealthPayload(JSON.parse(text));else if(ext==='csv')parsed=parseHealthCSV(text);else throw new Error('Bitte export.xml, JSON oder CSV auswählen.');healthData=parsed;localStorage.setItem('fitai_health',JSON.stringify(healthData));renderHealth();toast('Health-Daten importiert ✓')}catch(err){console.error(err);alert('Import fehlgeschlagen: '+(err.message||err))}event.target.value=''}
+function prettyWorkoutName(name){return String(name||'').replace(/^HKWorkoutActivityType/,'').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^traditional strength training$/i,'Krafttraining').replace(/^functional strength training$/i,'Krafttraining').replace(/^running$/i,'Laufen').replace(/^walking$/i,'Gehen')||'Workout'}
+
+function emptyHealthDay(){
+  return {steps:0,activeCalories:0,distanceKm:0,exerciseMinutes:0,hrSum:0,hrCount:0,sleepMs:0,workouts:[]}
+}
+function ensureHealthDay(daily,key){
+  if(!daily[key])daily[key]=emptyHealthDay();
+  return daily[key];
+}
+function finalizeHealthDay(day){
+  return {
+    steps:Math.round(day.steps||0),
+    activeCalories:Math.round(day.activeCalories||0),
+    distanceKm:Number((day.distanceKm||0).toFixed(2)),
+    exerciseMinutes:Math.round(day.exerciseMinutes||0),
+    avgHeartRate:day.hrCount?Math.round(day.hrSum/day.hrCount):null,
+    sleepHours:Number(((day.sleepMs||0)/3600000).toFixed(2)),
+    workoutsToday:Array.isArray(day.workouts)?day.workouts.length:0,
+    workouts:Array.isArray(day.workouts)?day.workouts:[]
+  };
+}
+function buildHealthPayload(daily, source='Health-Import'){
+  const keys=Object.keys(daily).sort();
+  const todayKey=dateKey(new Date());
+  const selectedKey=keys.includes(todayKey)?todayKey:(keys[keys.length-1]||todayKey);
+  const finalized={};
+  keys.forEach(k=>finalized[k]=finalizeHealthDay(daily[k]));
+  const current=finalized[selectedKey]||finalizeHealthDay(emptyHealthDay());
+  return {...current,daily:finalized,selectedDate:selectedKey,availableDays:keys,updatedAt:Date.now(),source};
+}
+function normalizeHealthPayload(data){
+  if(!data)return null;
+  if(data.fitaiHealth)return normalizeHealthPayload(data.fitaiHealth);
+  if(data.daily){
+    const out={...data,updatedAt:data.updatedAt||Date.now(),availableDays:Object.keys(data.daily).sort()};
+    const key=data.selectedDate||out.availableDays[out.availableDays.length-1];
+    if(key&&data.daily[key])Object.assign(out,data.daily[key]);
+    return out;
+  }
+  if(Array.isArray(data.records))return parseGenericHealthRecords(data.records,data.workouts||[]);
+  const out={...data};
+  out.updatedAt=Date.now();
+  out.workouts=Array.isArray(out.workouts)?out.workouts:[];
+  if(out.steps==null&&out.stepCount!=null)out.steps=out.stepCount;
+  if(out.sleepHours==null&&out.sleep!=null)out.sleepHours=Number(out.sleep);
+  return out;
+}
+
+function parseGenericHealthRecords(records,workoutRecords=[]){
+  const daily={};
+  for(const r of records){
+    const type=String(r.type||r.identifier||''),start=r.start||r.startDate||r.date,end=r.end||r.endDate||r.date;
+    if(!start)continue;
+    const key=dateKey(start), day=ensureHealthDay(daily,key), v=Number(r.value)||0;
+    if(/StepCount/i.test(type))day.steps+=v;
+    else if(/ActiveEnergyBurned|ActiveEnergy/i.test(type))day.activeCalories+=v;
+    else if(/DistanceWalkingRunning/i.test(type))day.distanceKm+=v/1000;
+    else if(/AppleExerciseTime|ExerciseTime/i.test(type))day.exerciseMinutes+=v;
+    else if(/HeartRate/i.test(type)){day.hrSum+=v;day.hrCount++}
+    else if(/SleepAnalysis|Sleep/i.test(type)&&end&&start)day.sleepMs+=Math.max(0,new Date(end)-new Date(start));
+  }
+  for(const w of workoutRecords){
+    const start=w.start||w.startDate,end=w.end||w.endDate;
+    if(!start)continue;
+    const key=dateKey(start),day=ensureHealthDay(daily,key);
+    day.workouts.push({name:prettyWorkoutName(w.name||w.activityType),date:start,durationMin:Math.round(durationHours(start,end||start)*60),calories:Number(w.calories||w.totalEnergyBurned||0),source:w.source||'Apple Watch'});
+  }
+  return buildHealthPayload(daily,'Health-Import');
+}
+
+function parseAppleHealthXML(text){
+  const xml=new DOMParser().parseFromString(text,'application/xml');
+  if(xml.querySelector('parsererror'))throw new Error('Die export.xml konnte nicht gelesen werden. Bitte die entpackte Apple-Datei „export.xml“ auswählen.');
+  const records=[...xml.getElementsByTagName('Record')],workouts=[...xml.getElementsByTagName('Workout')];
+  if(!records.length&&!workouts.length)throw new Error('In der XML-Datei wurden keine Apple-Health-Daten gefunden.');
+
+  const daily={};
+  const seen=new Set();
+  const addRecord=(r)=>{
+    const type=r.getAttribute('type')||'',start=r.getAttribute('startDate'),end=r.getAttribute('endDate')||start;
+    if(!start)return;
+    const value=r.getAttribute('value')||'';
+    const source=r.getAttribute('sourceName')||'';
+    const dedupe=`${type}|${start}|${end}|${value}|${source}`;
+    if(seen.has(dedupe))return; seen.add(dedupe);
+    const key=dateKey(start),day=ensureHealthDay(daily,key),v=Number(value)||0;
+    if(type==='HKQuantityTypeIdentifierStepCount')day.steps+=v;
+    else if(type==='HKQuantityTypeIdentifierActiveEnergyBurned')day.activeCalories+=v;
+    else if(type==='HKQuantityTypeIdentifierDistanceWalkingRunning')day.distanceKm+=v/1000;
+    else if(type==='HKQuantityTypeIdentifierAppleExerciseTime')day.exerciseMinutes+=v;
+    else if(type==='HKQuantityTypeIdentifierHeartRate'){day.hrSum+=v;day.hrCount++}
+    else if(type==='HKCategoryTypeIdentifierSleepAnalysis'){
+      // Nur Schlafphasen zählen; „InBed“ würde die Schlafdauer zusätzlich aufblasen.
+      const valueAttr=r.getAttribute('value')||'';
+      if(/Asleep/i.test(valueAttr)||/sleep/i.test(valueAttr))day.sleepMs+=Math.max(0,new Date(end)-new Date(start));
+    }
+  };
+  records.forEach(addRecord);
+
+  workouts.forEach(w=>{
+    const start=w.getAttribute('startDate'),end=w.getAttribute('endDate')||start;
+    if(!start)return;
+    const key=dateKey(start),day=ensureHealthDay(daily,key);
+    day.workouts.push({
+      name:prettyWorkoutName(w.getAttribute('workoutActivityType')),
+      date:start,
+      durationMin:Math.round(durationHours(start,end)*60),
+      calories:Number(w.getAttribute('totalEnergyBurned'))||0,
+      source:w.getAttribute('sourceName')||'Apple Watch'
+    });
+  });
+
+  const payload=buildHealthPayload(daily,'Apple Health export.xml');
+  payload.recordCount=records.length;
+  payload.workoutCount=workouts.length;
+  payload.rangeStart=Object.keys(daily).sort()[0]||null;
+  payload.rangeEnd=Object.keys(daily).sort().slice(-1)[0]||null;
+  return payload;
+}
+function parseHealthCSV(text){
+  const lines=text.trim().split(/\r?\n/).filter(Boolean);
+  if(lines.length<2)throw new Error('CSV enthält keine Daten.');
+  const headers=lines.shift().split(',').map(x=>x.trim().toLowerCase());
+  const records=lines.map(line=>{const cols=line.split(','),o={};headers.forEach((h,i)=>o[h]=cols[i]?.trim());return o});
+  return normalizeHealthPayload({records});
+}
+
+function selectedHealthPayload(){
+  if(!healthData)return null;
+  if(healthData.daily){
+    const key=healthData.selectedDate||dateKey(new Date());
+    return healthData.daily[key]||healthData.daily[healthData.availableDays?.[healthData.availableDays.length-1]]||null;
+  }
+  return healthData;
+}
+function selectHealthDay(key){
+  if(!healthData?.daily)return;
+  healthData.selectedDate=key;
+  localStorage.setItem('fitai_health',JSON.stringify(healthData));
+  renderHealth();
+}
+function formatHealthImportSummary(d){
+  const days=d?.availableDays?.length||0,records=d?.recordCount||0,workouts=d?.workoutCount||0;
+  if(!days)return '';
+  const from=d.rangeStart?dateLabel(d.rangeStart):'–',to=d.rangeEnd?dateLabel(d.rangeEnd):'–';
+  return `${days} Tage${records?` · ${records.toLocaleString('de-DE')} Einträge`:''}${workouts?` · ${workouts} Workouts`:''} · ${from} – ${to}`;
+}
+async function importHealthFile(event){
+  const file=event.target.files?.[0];if(!file)return;
+  try{
+    if(file.size>250*1024*1024)throw new Error('Die export.xml ist sehr groß (über 250 MB). Bitte eine kleinere Exportdatei verwenden oder den Import auf einem PC versuchen.');
+    const text=await file.text();
+    let parsed;
+    const ext=file.name.toLowerCase().split('.').pop();
+    if(ext==='xml')parsed=parseAppleHealthXML(text);
+    else if(ext==='json')parsed=normalizeHealthPayload(JSON.parse(text));
+    else if(ext==='csv')parsed=parseHealthCSV(text);
+    else throw new Error('Bitte die entpackte export.xml, JSON oder CSV auswählen.');
+    healthData=parsed;
+    localStorage.setItem('fitai_health',JSON.stringify(healthData));
+    renderHealth();
+    closeModal('healthImportModal');
+    toast(`Health importiert ✓ ${formatHealthImportSummary(parsed)}`);
+  }catch(err){
+    console.error(err);
+    alert('Health-Import fehlgeschlagen:\n\n'+(err.message||err)+'\n\nWichtig: Die export.xml wird nur auf deinem Gerät verarbeitet und nicht zu GitHub hochgeladen.');
+  }
+  event.target.value='';
+}
 
 function connectAppleHealth(){
   const bridge=window.webkit?.messageHandlers?.fitaiHealth;
   if(bridge){
-    try{ bridge.postMessage({action:'requestHealthData'}); toast('Apple Health Berechtigung wird geöffnet…'); }catch(e){toast('HealthKit konnte nicht geöffnet werden.')} 
+    try{ bridge.postMessage({action:'requestHealthData'}); toast('Apple Health Berechtigung wird geöffnet…'); }catch(e){toast('HealthKit konnte nicht geöffnet werden.')}
   }else{
     toast('HealthKit ist im Browser nicht verfügbar. Dafür braucht FitAI Buddy die native iPhone-App.');
     renderHealth();
   }
 }
-
 window.fitAIHealthData=function(data){
-  healthData=data||{};
+  healthData=normalizeHealthPayload(data)||data||null;
   localStorage.setItem('fitai_health',JSON.stringify(healthData));
   renderHealth();
   toast('Apple Health synchronisiert ✓');
 };
 
 function renderHealth(){
-  const d=healthData;
+  const d=selectedHealthPayload();
   const has=!!d;
+  const dayKey=healthData?.selectedDate||(healthData?.availableDays?.includes(dateKey(new Date()))?dateKey(new Date()):null);
+  const label=dayKey?dateLabel(dayKey):'heute';
+  const dayCard=document.getElementById('healthDayCard');
+  if(dayCard)dayCard.style.display=healthData?.daily?'block':'none';
+
+  if(healthData?.daily){
+    const sel=document.getElementById('healthDaySelect');
+    if(sel){
+      const keys=[...(healthData.availableDays||Object.keys(healthData.daily))].sort().reverse();
+      sel.innerHTML=keys.map(k=>`<option value="${k}" ${k===dayKey?'selected':''}>${dateLabel(k)}</option>`).join('');
+    }
+  }
+
   document.getElementById('healthSteps').textContent=has&&d.steps!=null?Number(d.steps).toLocaleString('de-DE'):'–';
   document.getElementById('healthSleep').textContent=has&&d.sleepHours!=null?`${Number(d.sleepHours).toFixed(1).replace('.',',')} h`:'–';
-  document.getElementById('healthSleepDetail').textContent=has?(d.sleepQuality?d.sleepQuality:'letzte Nacht'):'heute Nacht';
+  document.getElementById('healthSleepDetail').textContent=has?label:'heute Nacht';
   document.getElementById('healthWorkouts').textContent=has&&d.workoutsToday!=null?String(d.workoutsToday):'–';
   document.getElementById('healthCalories').textContent=has&&d.activeCalories!=null?`${Math.round(d.activeCalories).toLocaleString('de-DE')} kcal`:'–';
-  document.getElementById('healthUpdated').textContent=has&&d.updatedAt?`Sync ${new Date(d.updatedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:'Noch nicht synchronisiert';
-  const status=document.getElementById('healthStatus');
-  status.classList.toggle('health-ok',has);
-  if(has){
-    status.innerHTML=`<div class="section-title"><div><h3>✓ Health-Daten importiert</h3><p class="muted small" style="margin:4px 0 0">Quelle: ${esc(d.source||'Apple Health Export')} · lokal gespeichert</p></div><button class="secondary" onclick="openHealthImport()">Erneut importieren</button></div>`;
-  }
-  const details=document.getElementById('healthDetails');
-  if(!has){details.innerHTML='<div class="empty">Verbinde Apple Health, um weitere Daten wie Distanz, Herzfrequenz und Trainingsdetails anzuzeigen.</div>';document.getElementById('healthWorkoutList').innerHTML='<div class="empty">Noch keine Apple-Workouts synchronisiert.</div>';return;}
-  details.innerHTML=`<div class="health-detail-box"><span class="muted small">📅 Datenstand</span><b>${d.updatedAt?new Date(d.updatedAt).toLocaleDateString('de-DE'):'–'}</b></div><div class="health-detail-box"><span class="muted small">🚶 Distanz</span><b>${d.distanceKm!=null?Number(d.distanceKm).toFixed(1).replace('.',',')+' km':'–'}</b></div><div class="health-detail-box"><span class="muted small">❤️ Ø Herzfrequenz</span><b>${d.avgHeartRate!=null?Math.round(d.avgHeartRate)+' bpm':'–'}</b></div><div class="health-detail-box"><span class="muted small">🧍 Stehstunden</span><b>${d.standHours!=null?d.standHours+' h':'–'}</b></div><div class="health-detail-box"><span class="muted small">⚡ Bewegungsenergie</span><b>${d.exerciseMinutes!=null?d.exerciseMinutes+' min':'–'}</b></div>`;
-  const workouts=Array.isArray(d.workouts)?d.workouts:[];
-  document.getElementById('healthWorkoutList').innerHTML=workouts.length?workouts.slice(0,10).map(w=>`<div class="health-workout"><div><b>${esc(w.name||'Workout')}</b><div class="health-source">${w.date?new Date(w.date).toLocaleString('de-DE'):''} · ${w.durationMin||0} min</div></div><div style="text-align:right"><b>${w.calories!=null?Math.round(w.calories)+' kcal':'–'}</b><div class="health-source">${w.source||'Apple Watch'}</div></div></div>`).join(''):'<div class="empty">Keine Workouts für heute gefunden.</div>';
-}
+  document.getElementById('healthStepsLabel').textContent=label;
+  document.getElementById('healthWorkoutsLabel').textContent=label;
+  document.getElementById('healthCaloriesLabel').textContent=label;
+  document.getElementById('healthUpdated').textContent=healthData?.updatedAt?`Import ${new Date(healthData.updatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`:'Noch nicht synchronisiert';
 
+  const status=document.getElementById('healthStatus');
+  status.classList.toggle('health-ok',!!healthData);
+  if(healthData){
+    const summary=formatHealthImportSummary(healthData);
+    status.innerHTML=`<div class="section-title"><div><h3>✓ Health-Daten importiert</h3><p class="muted small" style="margin:4px 0 0">Quelle: ${esc(healthData.source||'Apple Health Export')} · ${summary||'lokal gespeichert'}</p></div><button class="secondary" onclick="openHealthImport()">Erneut importieren</button></div>`;
+  }
+
+  const details=document.getElementById('healthDetails');
+  if(!has){
+    details.innerHTML='<div class="empty">Importiere deine export.xml, um deine Health-Daten anzuzeigen.</div>';
+    document.getElementById('healthWorkoutList').innerHTML='<div class="empty">Noch keine Apple-Workouts importiert.</div>';
+    return;
+  }
+  details.innerHTML=`<div class="health-detail-box"><span class="muted small">📅 Ausgewählter Tag</span><b>${label}</b></div><div class="health-detail-box"><span class="muted small">🚶 Distanz</span><b>${d.distanceKm!=null?Number(d.distanceKm).toFixed(1).replace('.',',')+' km':'–'}</b></div><div class="health-detail-box"><span class="muted small">❤️ Ø Herzfrequenz</span><b>${d.avgHeartRate!=null?Math.round(d.avgHeartRate)+' bpm':'–'}</b></div><div class="health-detail-box"><span class="muted small">⚡ Bewegungsenergie</span><b>${d.exerciseMinutes!=null?d.exerciseMinutes+' min':'–'}</b></div>`;
+
+  const workouts=Array.isArray(d.workouts)?d.workouts:[];
+  document.getElementById('healthWorkoutList').innerHTML=workouts.length?workouts.slice(0,10).map(w=>`<div class="health-workout"><div><b>${esc(w.name||'Workout')}</b><div class="health-source">${w.date?new Date(w.date).toLocaleString('de-DE'):''} · ${w.durationMin||0} min</div></div><div style="text-align:right"><b>${w.calories!=null?Math.round(w.calories)+' kcal':'–'}</b><div class="health-source">${esc(w.source||'Apple Watch')}</div></div></div>`).join(''):`<div class="empty">Keine Workouts am ${label} gefunden.</div>`;
+}
 function openModal(id){document.getElementById(id).classList.add('show');if(id==='planModal')renderPlanChecks();if(id==='setModal')renderSetExerciseSelect()}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 
