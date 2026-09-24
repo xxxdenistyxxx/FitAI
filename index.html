@@ -118,6 +118,21 @@ label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}
   width:min(760px,100%);background:#0b0b0d;border:1px solid #252529;
   border-radius:22px;padding:20px;max-height:90vh;overflow:auto
 }
+
+.pin-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:210;padding:18px}
+.pin-modal.show{display:flex}
+.pin-box{width:min(380px,100%);background:#111113;border:1px solid #2a2a2f;border-radius:24px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.pin-box h3{margin:0 0 8px;font-size:20px}
+.pin-box p{margin:0 0 16px;color:var(--muted);font-size:13px}
+.pin-display{height:54px;border:1px solid #303035;border-radius:14px;background:#08080a;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px}
+.pin-dot{width:11px;height:11px;border-radius:50%;background:#33343a}
+.pin-dot.filled{background:#fff}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.pin-key{height:54px;border-radius:14px;background:#1a1a1d;color:#fff;border:1px solid #2c2c31;font-size:20px;font-weight:800}
+.pin-key.action{font-size:14px;color:#c8c8cf}
+.pin-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.pin-actions button{background:#171719;color:#fff;border:1px solid #2b2b30}
+.pin-actions .confirm{background:#f5f5f7;color:#050505}
 .login-screen{
   position:fixed;inset:0;background:#000;z-index:200;display:none;
   align-items:center;justify-content:center;padding:20px
@@ -172,7 +187,12 @@ h1,h2,h3{letter-spacing:-.2px}
 .library-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0 8px}.library-head h3{margin:0}.library-count{font-size:11px;color:#8d8d96}
 .exercise-hero{background:#0e0e10;border:1px solid #242429;border-radius:18px;overflow:hidden}.exercise-hero img{width:100%;height:205px;object-fit:cover;display:block}.exercise-hero-body{padding:16px}.exercise-hero-body h2{margin:0 0 5px}.exercise-hero-body p{color:#a2a2aa;line-height:1.5;margin:6px 0 14px}.tag-row{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.instruction{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #222227}.instruction:last-child{border:0}.instruction-num{width:27px;height:27px;border-radius:50%;background:#6d5dfc;color:white;display:grid;place-items:center;font-weight:800;flex:none}.history-table{overflow:auto}.history-table table{min-width:100%;border-collapse:collapse;font-size:12px}.history-table th,.history-table td{padding:9px 7px;border-bottom:1px solid #242428;text-align:left;white-space:nowrap}.history-table th{color:#8b8b93;font-weight:600}.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat-box{background:#111114;border:1px solid #222227;border-radius:13px;padding:11px}.stat-box b{display:block;font-size:18px;margin-top:4px}.back-link{background:transparent;color:#a9a9b1;padding:0;border:0;font-weight:700}.back-link:hover{color:#fff}
 @media(max-width:520px){.muscle-grid{grid-template-columns:1fr 1fr}.muscle-card{min-height:160px}.muscle-card img{height:120px}.library-card{grid-template-columns:68px 1fr auto}.library-card img{width:68px;height:58px}.exercise-hero img{height:190px}.stat-grid{grid-template-columns:1fr 1fr}}
-.training-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px}.training-search{flex:1;min-width:180px;background:#101012;border:1px solid #2a2a30;color:#fff;border-radius:13px;padding:11px 13px;outline:none}.training-search:focus{border-color:#6d5dfc}.filter-chip{background:#101012!important;color:#999!important;border:1px solid #29292f!important;padding:8px 11px!important;border-radius:999px!important;font-size:11px!important}.filter-chip.active{background:#6d5dfc!important;color:#fff!important;border-color:#6d5dfc!important}.fav-btn{width:38px;height:38px;padding:0!important;border-radius:12px!important;background:#151518!important;color:#fff!important;border:1px solid #2a2a30!important;font-size:18px!important}.fav-btn.active{color:#ffcf4a!important;border-color:#6d5dfc!important}.exercise-library .library-card{transition:.15s transform,.15s border-color}.exercise-library .library-card:hover{border-color:#45405f;transform:translateY(-1px)}.exercise-hero-media{position:relative}.exercise-hero-media:after{content:'▶';position:absolute;left:16px;bottom:16px;width:42px;height:42px;border-radius:50%;background:rgba(109,93,252,.92);display:grid;place-items:center;color:#fff;font-size:14px;box-shadow:0 5px 20px rgba(109,93,252,.3)}.anatomy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.anatomy-box{background:#111114;border:1px solid #242429;border-radius:13px;padding:10px}.anatomy-box img{width:100%;height:110px;object-fit:cover;border-radius:10px}.quick-stat{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #242428}.quick-stat:last-child{border-bottom:0}.empty-state{padding:18px;text-align:center;color:#77777f}.exercise-meta-line{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.exercise-meta-line span{font-size:10px;color:#9a9aa3;background:#161619;border:1px solid #29292f;padding:4px 7px;border-radius:999px}
+.training-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px}.training-search{flex:1;min-width:180px;background:#101012;border:1px solid #2a2a30;color:#fff;border-radius:13px;padding:11px 13px;outline:none}.training-search:focus{border-color:#6d5dfc}.filter-chip{background:#101012!important;color:#999!important;border:1px solid #29292f!important;padding:8px 11px!important;border-radius:999px!important;font-size:11px!important}.filter-chip.active{background:#6d5dfc!important;color:#fff!important;border-color:#6d5dfc!important}.fav-btn{width:38px;height:38px;padding:0!important;border-radius:12px!important;background:#151518!important;color:#fff!important;border:1px solid #2a2a30!important;font-size:18px!important}.fav-btn.active{color:#ffcf4a!important;border-color:#6d5dfc!important}.exercise-library .library-card{transition:.15s transform,.15s border-color}.exercise-library .library-card:hover{border-color:#45405f;transform:translateY(-1px)}.exercise-hero-media{position:relative}.exercise-hero-media:after{content:'▶';position:absolute;left:16px;bottom:16px;width:42px;height:42px;border-radius:50%;background:rgba(109,93,252,.92);display:grid;place-items:center;color:#fff;font-size:14px;box-shadow:0 5px 20px rgba(109,93,252,.3)}.anatomy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.anatomy-box{background:#111114;border:1px solid #242429;border-radius:13px;padding:10px}.anatomy-box img{width:100%;height:110px;object-fit:cover;border-radius:10px}.quick-stat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.quick-stat .stat-item{background:#111113;border:1px solid #242428;border-radius:12px;padding:10px;min-width:0}
+.quick-stat .stat-item span{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}
+.quick-stat .stat-item b{display:block;font-size:18px;white-space:nowrap}
+@media(max-width:520px){.quick-stat{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.quick-stat .stat-item{padding:9px 7px}.quick-stat .stat-item b{font-size:15px}.quick-stat .stat-item span{font-size:10px}}
+.empty-state{padding:18px;text-align:center;color:#77777f}.exercise-meta-line{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.exercise-meta-line span{font-size:10px;color:#9a9aa3;background:#161619;border:1px solid #29292f;padding:4px 7px;border-radius:999px}
 @media(max-width:520px){.anatomy-grid{grid-template-columns:1fr 1fr}.training-tools{position:static;background:#000;padding:7px 0}}
 
 .health-import-box{background:#0e0e10;border:1px solid #242429;border-radius:16px;padding:14px;margin-top:10px}.health-source-badge{display:inline-flex;align-items:center;gap:6px;background:#16131f;color:#cfc5ff;border:1px solid #3a2b72;padding:5px 9px;border-radius:999px;font-size:11px}.health-help ol{padding-left:20px}.health-help li{margin:9px 0;color:#b5b5bd}.health-date-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #222}.health-date-row:last-child{border-bottom:0}
@@ -283,7 +303,7 @@ h1,h2,h3{letter-spacing:-.2px}
   <div class="card"><h3>Gewichtsverlauf</h3><div id="weightChart" class="chart"></div></div>
   <div class="card"><h3>Kraftentwicklung</h3><div id="strengthTable"></div></div>
   <div class="card"><h3>📝 Gewicht eintragen</h3>
-    <div class="formgrid"><input id="newWeight" type="number" step="0.1" placeholder="Gewicht kg"><input id="weightNote" placeholder="Notiz (optional)"></div>
+    <div class="formgrid"><input id="newWeight" type="number" inputmode="decimal" step="0.1" placeholder="Gewicht kg"><input id="weightNote" placeholder="Notiz (optional)"></div>
     <br><button class="full" onclick="addWeight()">Gewicht speichern</button>
   </div>
 </section>
@@ -389,6 +409,20 @@ h1,h2,h3{letter-spacing:-.2px}
 </div>
 <div id="exerciseDetailModal" class="modal" onclick="if(event.target===this)closeModal('exerciseDetailModal')">
 <div class="sheet" id="exerciseDetailSheet"></div></div>
+
+<div id="pinModal" class="pin-modal" onclick="if(event.target===this)closePinKeypad()">
+<div class="pin-box">
+  <h3>🔐 Profil-PIN</h3>
+  <p>Gib deine PIN ein, um die persönlichen Daten zu bearbeiten.</p>
+  <div id="pinDots" class="pin-display" aria-label="PIN-Eingabe"></div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="pinKey('1')">1</button><button class="pin-key" onclick="pinKey('2')">2</button><button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button><button class="pin-key" onclick="pinKey('5')">5</button><button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button><button class="pin-key" onclick="pinKey('8')">8</button><button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key action" onclick="pinKey('clear')">Löschen</button><button class="pin-key" onclick="pinKey('0')">0</button><button class="pin-key action" onclick="pinKey('back')">⌫</button>
+  </div>
+  <div class="pin-actions"><button onclick="closePinKeypad()">Abbrechen</button><button class="confirm" onclick="pinKey('enter')">Bestätigen</button></div>
+</div></div>
 
 <div id="toast" class="toast"></div>
 
@@ -545,13 +579,40 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function getUser(){
  const u=currentId?accounts[currentId]:null;
  if(!u)return null;
+ const accountProfile=normalizeProfile(u.profile,u);
  const saved=loadProfileVault(currentId);
  if(saved){
-   u.profile=normalizeProfile(saved,u);
+   const vaultProfile=normalizeProfile(saved,u);
+   const at=accountProfile.profileUpdatedAt?new Date(accountProfile.profileUpdatedAt).getTime():0;
+   const vt=vaultProfile.profileUpdatedAt?new Date(vaultProfile.profileUpdatedAt).getTime():0;
+   const defaults=profileDefaults();
+   const keys=Object.keys(defaults);
+   const merged={...defaults};
+   // First recover any real value from either store when the other side still
+   // contains the old default. This fixes stale profile-vault data from older versions.
+   keys.forEach(k=>{
+     const av=accountProfile[k], vv=vaultProfile[k], dv=defaults[k];
+     const aReal=String(av??'')!==String(dv??'');
+     const vReal=String(vv??'')!==String(dv??'');
+     if(aReal&&!vReal) merged[k]=av;
+     else if(vReal&&!aReal) merged[k]=vv;
+   });
+   const newer=(at>=vt)?accountProfile:vaultProfile;
+   keys.forEach(k=>{
+     const av=accountProfile[k], vv=vaultProfile[k], dv=defaults[k];
+     const aReal=String(av??'')!==String(dv??'');
+     const vReal=String(vv??'')!==String(dv??'');
+     if(aReal&&vReal) merged[k]=newer[k];
+     else if(!aReal&&!vReal) merged[k]=dv;
+   });
+   merged.name=(merged.name??'').toString();
+   merged.profileUpdatedAt=(at>=vt?accountProfile.profileUpdatedAt:vaultProfile.profileUpdatedAt)||accountProfile.profileUpdatedAt||vaultProfile.profileUpdatedAt;
+   u.profile=merged;
  }else{
-   u.profile=normalizeProfile(u.profile,u);
+   u.profile=accountProfile;
    saveProfileVault(u.profile,currentId);
  }
+ accounts[currentId]=u;
  return u;
 }
 function saveAccounts(){localStorage.setItem(KEY,JSON.stringify(accounts))}
@@ -918,8 +979,32 @@ function formatProgressDate(iso,withTime=false){
  const d=new Date(iso);if(Number.isNaN(d.getTime()))return '–';
  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+(withTime?' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'');
 }
+function syncProfileWeightToHistory(u){
+ if(!u||!u.profile)return;
+ if(!Array.isArray(u.weights))u.weights=[];
+ const pw=Number(u.profile.weight);
+ if(!Number.isFinite(pw)||pw<=0)return;
+ if(u.weights.length===1 && Number(u.weights[0].weight)===95.8 && String(u.weights[0].note||'').toLowerCase()==='start' && pw!==95.8){
+   u.weights[0]={date:u.profile.profileUpdatedAt||u.weights[0].date||new Date().toISOString(),weight:pw,note:'Profil',source:'profile'};
+   accounts[currentId]=u;saveAccounts();saveProfileVault(u.profile,currentId);
+   return;
+ }
+ const stamp=u.profile.profileUpdatedAt||null;
+ const profileEntry=u.weights.find(w=>w.source==='profile' || String(w.note||'').toLowerCase()==='profil');
+ if(profileEntry){
+   if(Number(profileEntry.weight)!==pw || (stamp&&profileEntry.date!==stamp)){
+     profileEntry.weight=pw;if(stamp)profileEntry.date=stamp;
+     accounts[currentId]=u;saveAccounts();
+   }
+ }else{
+   u.weights.push({date:stamp||new Date().toISOString(),weight:pw,note:'Profil',source:'profile'});
+   accounts[currentId]=u;saveAccounts();
+ }
+}
+
 function renderProgress(){
  const u=getUser();if(!u)return;
+ syncProfileWeightToHistory(u);
  const weights=Array.isArray(u.weights)?u.weights.slice().filter(x=>Number.isFinite(Number(x.weight))&&x.date).sort((a,b)=>new Date(a.date)-new Date(b.date)):[];
  document.getElementById('progressWorkouts').textContent=Array.isArray(u.workouts)?u.workouts.length:0;
  const chart=document.getElementById('weightChart');
@@ -930,7 +1015,11 @@ function renderProgress(){
    const first=Number(weights[0].weight),last=Number(weights.at(-1).weight),diff=last-first;
    const rows=weights.slice().reverse().slice(0,12).map((w,i)=>{const prev=weights[weights.length-1-i-1];const change=prev?Number(w.weight)-Number(prev.weight):null;return `<tr><td>${formatProgressDate(w.date,weights.filter(x=>new Date(x.date).toLocaleDateString('de-DE')===new Date(w.date).toLocaleDateString('de-DE')).length>1)}</td><td><b>${Number(w.weight).toFixed(1).replace('.',',')} kg</b></td><td>${change==null?'–':(change>0?'+':'')+change.toFixed(1).replace('.',',')+' kg'}</td></tr>`}).join('');
    chart.innerHTML=svgLineChart(points,{unit:'kg',aria:'Gewichtsverlauf'})+
-     `<div class="quick-stat"><span>Startgewicht</span><b>${first.toFixed(1).replace('.',',')} kg</b><span>Aktuell</span><b>${last.toFixed(1).replace('.',',')} kg</b><span>Veränderung</span><b>${(diff>0?'+':'')+diff.toFixed(1).replace('.',',')} kg</b></div>`+
+     `<div class="quick-stat">
+       <div class="stat-item"><span>Startgewicht</span><b>${first.toFixed(1).replace('.',',')} kg</b></div>
+       <div class="stat-item"><span>Aktuell</span><b>${last.toFixed(1).replace('.',',')} kg</b></div>
+       <div class="stat-item"><span>Veränderung</span><b>${(diff>0?'+':'')+diff.toFixed(1).replace('.',',')} kg</b></div>
+     </div>`+
      `<div class="history-table" style="margin-top:12px"><table><thead><tr><th>Datum</th><th>Gewicht</th><th>Änderung</th></tr></thead><tbody>${rows}</tbody></table></div>`;
  }
  const strength=document.getElementById('strengthTable');
@@ -958,7 +1047,11 @@ function renderStrengthChart(exerciseId){
  box.innerHTML=points.length?svgLineChart(points,{unit:'kg',aria:`Kraftentwicklung ${ex?.name||''}`}):'<div class="empty">Noch keine Daten für diese Übung.</div>';
  const first=points[0]?.value,last=points.length?points[points.length-1].value:null;
  const best=points.length?Math.max(...points.map(p=>p.value)):null;
- if(summary)summary.innerHTML=`<span>Erster Bestwert</span><b>${first!=null?first.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Aktueller Wert</span><b>${last!=null?last.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Bestes Gewicht</span><b>${best!=null?best.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Veränderung</span><b>${first!=null&&last!=null?(last-first>=0?'+':'')+(last-first).toFixed(1).replace('.',',')+' kg':'–'}</b>`;
+ if(summary)summary.innerHTML=`
+   <div class="stat-item"><span>Erster Bestwert</span><b>${first!=null?first.toFixed(1).replace('.',',')+' kg':'–'}</b></div>
+   <div class="stat-item"><span>Aktueller Wert</span><b>${last!=null?last.toFixed(1).replace('.',',')+' kg':'–'}</b></div>
+   <div class="stat-item"><span>Bestes Gewicht</span><b>${best!=null?best.toFixed(1).replace('.',',')+' kg':'–'}</b></div>
+   <div class="stat-item"><span>Veränderung</span><b>${first!=null&&last!=null?(last-first>=0?'+':'')+(last-first).toFixed(1).replace('.',',')+' kg':'–'}</b></div>`;
 }
 function renderTraining(){
  const u=getUser();if(!u)return;
@@ -1099,9 +1192,9 @@ function addWeight(){
  if(!Array.isArray(u.weights))u.weights=[];
  const entry={date:new Date().toISOString(),weight:v,note:document.getElementById('weightNote').value.trim()};
  u.weights.push(entry);
- // Das aktuelle Gewicht darf sich ändern, aber kein anderes Profilfeld.
- u.profile.weight=v;
- accounts[currentId]=u;saveProfileVault(u.profile,currentId);saveAccounts();
+ // Ein Progress-Eintrag ist eine eigene Messung und überschreibt
+ // das persönliche Profilgewicht nicht.
+ accounts[currentId]=u;saveAccounts();saveProfileVault(u.profile,currentId);
  document.getElementById('newWeight').value='';document.getElementById('weightNote').value='';
  renderAll();toast('Gewicht gespeichert ⚖️')
 }
@@ -1122,14 +1215,44 @@ function fillSettings(){
  settingsDirty=false;
 }
 function markSettingsDirty(){if(profileEditUnlocked)settingsDirty=true}
+let pinResolver=null;
+let pinBuffer='';
+
+function openPinKeypad(onSuccess){
+ pinResolver=onSuccess;pinBuffer='';renderPinKeypad();
+ const m=document.getElementById('pinModal');if(m)m.classList.add('show');
+}
+function closePinKeypad(){const m=document.getElementById('pinModal');if(m)m.classList.remove('show');pinResolver=null;pinBuffer='';}
+function renderPinKeypad(){
+ const dots=document.getElementById('pinDots');if(!dots)return;
+ dots.innerHTML=Array.from({length:6},(_,i)=>`<span class="pin-dot ${i<pinBuffer.length?'filled':''}"></span>`).join('');
+}
+function pinKey(value){
+ if(value==='back'){pinBuffer=pinBuffer.slice(0,-1);renderPinKeypad();return}
+ if(value==='clear'){pinBuffer='';renderPinKeypad();return}
+ if(value==='enter'){
+   const u=getUser();
+   if(u&&pinBuffer.length>=4&&pinBuffer===String(u.pin)){const cb=pinResolver;closePinKeypad();if(cb)cb();}
+   else toast('PIN ist falsch. 🔒');
+   return;
+ }
+ if(!/^\d$/.test(value)||pinBuffer.length>=6)return;
+ pinBuffer+=value;renderPinKeypad();
+ if(pinBuffer.length>=4){
+   const u=getUser();
+   if(u&&pinBuffer===String(u.pin)){
+     const cb=pinResolver;closePinKeypad();if(cb)cb();return;
+   }
+   if(pinBuffer.length===6){toast('PIN ist falsch. 🔒');pinBuffer='';renderPinKeypad();}
+ }
+}
 function unlockProfileEdit(){
  const u=getUser();if(!u)return;
- const entered=prompt('Bitte deine Profil-PIN eingeben, um die persönlichen Daten zu ändern:');
- if(entered===null)return;
- if(String(entered)!==String(u.pin)){toast('PIN ist falsch. 🔒');return}
- profileEditUnlocked=true;
- fillSettings();
- toast('Profil entsperrt 🔓');
+ openPinKeypad(()=>{
+   profileEditUnlocked=true;
+   fillSettings();
+   toast('Profil entsperrt 🔓');
+ });
 }
 function saveSettings(){
  const u=getUser();if(!u||!profileEditUnlocked){toast('Profil ist gesperrt. Bitte zuerst entsperren. 🔒');return}
