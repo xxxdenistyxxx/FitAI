@@ -204,7 +204,7 @@ h1,h2,h3{letter-spacing:-.2px}
 </style>
 </head>
 <body>
-<!-- FitAI Buddy v25.2 -->
+<!-- FitAI Buddy v25.3 -->
 
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
@@ -362,7 +362,7 @@ h1,h2,h3{letter-spacing:-.2px}
   </div>
   <div class="card" style="text-align:center;margin-bottom:6px">
     <div class="muted tiny">FitAI Buddy</div>
-    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.2</div>
+    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.3</div>
     <div class="muted tiny" style="margin-top:4px">Aktuell verwendete Version</div>
   </div>
 </section>
@@ -1231,15 +1231,18 @@ function createFood(){
  persist();
  closeModal('foodModal');
  ['mFoodName','mCal','mP','mC','mF'].forEach(id=>document.getElementById(id).value='');
- renderNutrition();
- renderHome();
+ refreshNutritionUI();
  toast('Essen gespeichert 🍽️');
 }
+function refreshNutritionUI(){
+ renderNutrition();
+ if(typeof renderHome==='function') renderHome();
+}
+
 function deleteFood(id){
  getUser().foods=getUser().foods.filter(x=>x.id!==id);
  persist();
- renderNutrition();
- renderHome();
+ refreshNutritionUI();
  toast('Eintrag gelöscht');
 }
 
@@ -1424,7 +1427,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(settings && !document.getElementById('fitaiVersion')){
     const v=document.createElement('div');
     v.id='fitaiVersion';
-    v.textContent='FitAI Buddy · Version v25.2';
+    v.textContent='FitAI Buddy · Version v25.3';
     settings.appendChild(v);
   }
 });
