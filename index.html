@@ -274,7 +274,7 @@ h1,h2,h3{letter-spacing:-.2px}
     <p class="muted">In der GitHub-Pages-Version kann FitAI Buddy Apple Health nicht direkt auslesen. Du kannst deine Health-Daten aber als <b>export.xml</b>, JSON oder CSV importieren. Der Import wird <b>komplett auf deinem Gerät</b> verarbeitet – die Health-Datei wird nicht zu GitHub hochgeladen.</p>
     <div class="actions"><button class="full" onclick="openHealthImport()">📥 Health-Daten importieren</button><button class="secondary" onclick="showHealthHelp()">ℹ️ So geht's</button></div>
     <input id="healthFileInput" type="file" accept=".xml,.json,.csv,text/xml,application/json,text/csv" style="display:none" onchange="importHealthFile(event)">
-    <p class="tiny muted" style="margin-bottom:0">Tipp: In Apple Health über dein Profil → „Alle Gesundheitsdaten exportieren“ und anschließend <b>export.xml</b> auswählen.</p>
+    <p class="tiny muted" style="margin-bottom:0">Große Apple-Health-Exporte werden direkt im Browser verarbeitet, ohne die komplette Datei auf einmal zu laden. Wähle die entpackte <b>export.xml</b> aus.</p>
   </div>
   <div class="card" id="healthDayCard" style="display:none">
     <div class="section-title"><div><h3>📅 Health-Daten ansehen</h3><p class="muted small" style="margin:4px 0 0">Der Export enthält mehrere Tage. Wähle hier einen Tag aus.</p></div>
@@ -685,104 +685,62 @@ function parseGenericHealthRecords(records,workoutRecords=[]){
   return buildHealthPayload(daily,'Health-Import');
 }
 
+function parseAppleHealthRecordElement(r,daily,seen){
+  const type=r.getAttribute('type')||'',start=r.getAttribute('startDate'),end=r.getAttribute('endDate')||start;
+  if(!start)return;
+  const value=r.getAttribute('value')||'',source=r.getAttribute('sourceName')||'';
+  const dedupe=`${type}|${start}|${end}|${value}|${source}`;
+  if(seen.has(dedupe))return; seen.add(dedupe);
+  const key=dateKey(start),day=ensureHealthDay(daily,key),v=Number(value)||0;
+  if(type==='HKQuantityTypeIdentifierStepCount')day.steps+=v;
+  else if(type==='HKQuantityTypeIdentifierActiveEnergyBurned')day.activeCalories+=v;
+  else if(type==='HKQuantityTypeIdentifierDistanceWalkingRunning')day.distanceKm+=v/1000;
+  else if(type==='HKQuantityTypeIdentifierAppleExerciseTime')day.exerciseMinutes+=v;
+  else if(type==='HKQuantityTypeIdentifierHeartRate'){day.hrSum+=v;day.hrCount++;}
+  else if(type==='HKCategoryTypeIdentifierSleepAnalysis'){const valueAttr=r.getAttribute('value')||''; if(/Asleep/i.test(valueAttr)||/sleep/i.test(valueAttr))day.sleepMs+=Math.max(0,new Date(end)-new Date(start));}
+}
+function parseAppleHealthWorkoutElement(w,daily){
+  const start=w.getAttribute('startDate'),end=w.getAttribute('endDate')||start; if(!start)return;
+  const key=dateKey(start),day=ensureHealthDay(daily,key);
+  day.workouts.push({name:prettyWorkoutName(w.getAttribute('workoutActivityType')||w.getAttribute('name')||'Workout'),date:start,durationMin:Math.round(durationHours(start,end)*60),calories:Number(w.getAttribute('totalEnergyBurned'))||0,source:w.getAttribute('sourceName')||'Apple Watch'});
+}
 function parseAppleHealthXML(text){
   const xml=new DOMParser().parseFromString(text,'application/xml');
   if(xml.querySelector('parsererror'))throw new Error('Die export.xml konnte nicht gelesen werden. Bitte die entpackte Apple-Datei „export.xml“ auswählen.');
   const records=[...xml.getElementsByTagName('Record')],workouts=[...xml.getElementsByTagName('Workout')];
   if(!records.length&&!workouts.length)throw new Error('In der XML-Datei wurden keine Apple-Health-Daten gefunden.');
-
-  const daily={};
-  const seen=new Set();
-  const addRecord=(r)=>{
-    const type=r.getAttribute('type')||'',start=r.getAttribute('startDate'),end=r.getAttribute('endDate')||start;
-    if(!start)return;
-    const value=r.getAttribute('value')||'';
-    const source=r.getAttribute('sourceName')||'';
-    const dedupe=`${type}|${start}|${end}|${value}|${source}`;
-    if(seen.has(dedupe))return; seen.add(dedupe);
-    const key=dateKey(start),day=ensureHealthDay(daily,key),v=Number(value)||0;
-    if(type==='HKQuantityTypeIdentifierStepCount')day.steps+=v;
-    else if(type==='HKQuantityTypeIdentifierActiveEnergyBurned')day.activeCalories+=v;
-    else if(type==='HKQuantityTypeIdentifierDistanceWalkingRunning')day.distanceKm+=v/1000;
-    else if(type==='HKQuantityTypeIdentifierAppleExerciseTime')day.exerciseMinutes+=v;
-    else if(type==='HKQuantityTypeIdentifierHeartRate'){day.hrSum+=v;day.hrCount++}
-    else if(type==='HKCategoryTypeIdentifierSleepAnalysis'){
-      // Nur Schlafphasen zählen; „InBed“ würde die Schlafdauer zusätzlich aufblasen.
-      const valueAttr=r.getAttribute('value')||'';
-      if(/Asleep/i.test(valueAttr)||/sleep/i.test(valueAttr))day.sleepMs+=Math.max(0,new Date(end)-new Date(start));
+  const daily={},seen=new Set(); records.forEach(r=>parseAppleHealthRecordElement(r,daily,seen)); workouts.forEach(w=>parseAppleHealthWorkoutElement(w,daily));
+  const out=buildHealthPayload(daily,'Health-Import'); out.recordCount=records.length; out.workoutCount=workouts.length; out.rangeStart=out.availableDays[0]||null; out.rangeEnd=out.availableDays[out.availableDays.length-1]||null; return out;
+}
+// Große Exporte werden stückweise gelesen. Safari muss dadurch nicht die komplette XML gleichzeitig in den Speicher laden.
+async function parseAppleHealthXMLStream(file,onProgress){
+  if(!file?.stream)return parseAppleHealthXML(await file.text());
+  const daily={},seen=new Set(); let recordCount=0,workoutCount=0,found=false,bytesRead=0;
+  const reader=file.stream().getReader(),decoder=new TextDecoder('utf-8'); let buffer='';
+  const processBuffer=()=>{
+    let pos=0,lastSafe=0;
+    while(true){
+      const rStart=buffer.indexOf('<Record',pos),wStart=buffer.indexOf('<Workout',pos); let start=-1,isWorkout=false;
+      if(rStart>=0&&(wStart<0||rStart<wStart)){start=rStart;} else if(wStart>=0){start=wStart;isWorkout=true;} else break;
+      if(!isWorkout){
+        const end=buffer.indexOf('/>',start); if(end<0)break;
+        const doc=new DOMParser().parseFromString(buffer.slice(start,end+2),'application/xml'),el=doc.documentElement;
+        if(el?.tagName==='Record'){parseAppleHealthRecordElement(el,daily,seen);recordCount++;found=true;}
+        pos=end+2;lastSafe=pos;
+      }else{
+        const end=buffer.indexOf('</Workout>',start); if(end<0)break;
+        const doc=new DOMParser().parseFromString(buffer.slice(start,end+10),'application/xml'),el=doc.documentElement;
+        if(el?.tagName==='Workout'){parseAppleHealthWorkoutElement(el,daily);workoutCount++;found=true;}
+        pos=end+10;lastSafe=pos;
+      }
     }
+    if(lastSafe)buffer=buffer.slice(lastSafe);
+    if(buffer.length>2*1024*1024)throw new Error('Die export.xml scheint beschädigt oder ungewöhnlich aufgebaut zu sein.');
   };
-  records.forEach(addRecord);
-
-  workouts.forEach(w=>{
-    const start=w.getAttribute('startDate'),end=w.getAttribute('endDate')||start;
-    if(!start)return;
-    const key=dateKey(start),day=ensureHealthDay(daily,key);
-    day.workouts.push({
-      name:prettyWorkoutName(w.getAttribute('workoutActivityType')),
-      date:start,
-      durationMin:Math.round(durationHours(start,end)*60),
-      calories:Number(w.getAttribute('totalEnergyBurned'))||0,
-      source:w.getAttribute('sourceName')||'Apple Watch'
-    });
-  });
-
-  const payload=buildHealthPayload(daily,'Apple Health export.xml');
-  payload.recordCount=records.length;
-  payload.workoutCount=workouts.length;
-  payload.rangeStart=Object.keys(daily).sort()[0]||null;
-  payload.rangeEnd=Object.keys(daily).sort().slice(-1)[0]||null;
-  return payload;
-}
-function parseHealthCSV(text){
-  const lines=text.trim().split(/\r?\n/).filter(Boolean);
-  if(lines.length<2)throw new Error('CSV enthält keine Daten.');
-  const headers=lines.shift().split(',').map(x=>x.trim().toLowerCase());
-  const records=lines.map(line=>{const cols=line.split(','),o={};headers.forEach((h,i)=>o[h]=cols[i]?.trim());return o});
-  return normalizeHealthPayload({records});
-}
-
-function selectedHealthPayload(){
-  if(!healthData)return null;
-  if(healthData.daily){
-    const key=healthData.selectedDate||dateKey(new Date());
-    return healthData.daily[key]||healthData.daily[healthData.availableDays?.[healthData.availableDays.length-1]]||null;
-  }
-  return healthData;
-}
-function selectHealthDay(key){
-  if(!healthData?.daily)return;
-  healthData.selectedDate=key;
-  localStorage.setItem('fitai_health',JSON.stringify(healthData));
-  renderHealth();
-}
-function formatHealthImportSummary(d){
-  const days=d?.availableDays?.length||0,records=d?.recordCount||0,workouts=d?.workoutCount||0;
-  if(!days)return '';
-  const from=d.rangeStart?dateLabel(d.rangeStart):'–',to=d.rangeEnd?dateLabel(d.rangeEnd):'–';
-  return `${days} Tage${records?` · ${records.toLocaleString('de-DE')} Einträge`:''}${workouts?` · ${workouts} Workouts`:''} · ${from} – ${to}`;
-}
-async function importHealthFile(event){
-  const file=event.target.files?.[0];if(!file)return;
-  try{
-    if(file.size>250*1024*1024)throw new Error('Die export.xml ist sehr groß (über 250 MB). Bitte eine kleinere Exportdatei verwenden oder den Import auf einem PC versuchen.');
-    const text=await file.text();
-    let parsed;
-    const ext=file.name.toLowerCase().split('.').pop();
-    if(ext==='xml')parsed=parseAppleHealthXML(text);
-    else if(ext==='json')parsed=normalizeHealthPayload(JSON.parse(text));
-    else if(ext==='csv')parsed=parseHealthCSV(text);
-    else throw new Error('Bitte die entpackte export.xml, JSON oder CSV auswählen.');
-    healthData=parsed;
-    localStorage.setItem('fitai_health',JSON.stringify(healthData));
-    renderHealth();
-    closeModal('healthImportModal');
-    toast(`Health importiert ✓ ${formatHealthImportSummary(parsed)}`);
-  }catch(err){
-    console.error(err);
-    alert('Health-Import fehlgeschlagen:\n\n'+(err.message||err)+'\n\nWichtig: Die export.xml wird nur auf deinem Gerät verarbeitet und nicht zu GitHub hochgeladen.');
-  }
-  event.target.value='';
+  while(true){const {value,done}=await reader.read(); if(done)break; bytesRead+=value.byteLength; buffer+=decoder.decode(value,{stream:true}); processBuffer(); if(onProgress)onProgress(bytesRead/file.size); await new Promise(requestAnimationFrame);}
+  buffer+=decoder.decode(); processBuffer();
+  if(!found)throw new Error('In der XML-Datei wurden keine Apple-Health-Daten gefunden.');
+  const out=buildHealthPayload(daily,'Health-Import'); out.recordCount=recordCount; out.workoutCount=workoutCount; out.rangeStart=out.availableDays[0]||null; out.rangeEnd=out.availableDays[out.availableDays.length-1]||null; return out;
 }
 
 function connectAppleHealth(){
@@ -1014,4 +972,28 @@ function deleteCurrentProfile(){
 })();
 </script>
 </body>
-</html>
+</htmlasync function importHealthFile(event){
+  const file=event.target.files?.[0];if(!file)return;
+  try{
+    const ext=file.name.toLowerCase().split('.').pop(); let parsed;
+    if(ext==='xml'){
+      toast('Health-Export wird verarbeitet… 0 %');
+      parsed=await parseAppleHealthXMLStream(file,p=>{const pct=Math.min(99,Math.round(p*100)); if(pct%10===0)toast(`Health-Export wird verarbeitet… ${pct} %`);});
+    }else if(ext==='json'){
+      if(file.size>50*1024*1024)throw new Error('Die JSON-Datei ist sehr groß. Für Apple Health bitte export.xml verwenden.');
+      parsed=normalizeHealthPayload(JSON.parse(await file.text()));
+    }else if(ext==='csv'){
+      if(file.size>100*1024*1024)throw new Error('Die CSV-Datei ist sehr groß. Für Apple Health bitte export.xml verwenden.');
+      parsed=parseHealthCSV(await file.text());
+    }else throw new Error('Bitte die entpackte export.xml, JSON oder CSV auswählen.');
+    healthData=parsed;
+    try{localStorage.setItem('fitai_health',JSON.stringify(healthData));}catch(e){throw new Error('Die Health-Daten wurden gelesen, passen aber nicht in den lokalen Browser-Speicher. Bitte Safari-Speicher freigeben oder einen kleineren Zeitraum exportieren.');}
+    renderHealth(); closeModal('healthImportModal'); toast(`Health importiert ✓ ${formatHealthImportSummary(parsed)}`);
+  }catch(err){console.error(err);alert('Health-Import fehlgeschlagen:
+
+'+(err.message||err)+'
+
+Die Datei wird nur auf deinem Gerät verarbeitet und nicht zu GitHub hochgeladen.');}
+  event.target.value='';
+}
+>
