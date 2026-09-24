@@ -204,7 +204,7 @@ h1,h2,h3{letter-spacing:-.2px}
 </style>
 </head>
 <body>
-<!-- FitAI Buddy v25.0 -->
+<!-- FitAI Buddy v25.1 -->
 
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
@@ -361,7 +361,7 @@ h1,h2,h3{letter-spacing:-.2px}
   </div>
   <div class="card" style="text-align:center;margin-bottom:6px">
     <div class="muted tiny">FitAI Buddy</div>
-    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.0</div>
+    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.1</div>
     <div class="muted tiny" style="margin-top:4px">Aktuell verwendete Version</div>
   </div>
 </section>
@@ -1210,7 +1210,8 @@ function deleteWeightEntry(index){
  if(originalIndex<0)return;
  u.weights.splice(originalIndex,1);
  accounts[currentId]=u;saveAccounts();
- renderAll();
+ renderProgress();
+ if(typeof renderHome==='function')renderHome();
  toast('Gewichtseintrag entfernt 🗑️');
 }
 
@@ -1225,7 +1226,9 @@ function addWeight(){
  // das persönliche Profilgewicht nicht.
  accounts[currentId]=u;saveAccounts();saveProfileVault(u.profile,currentId);
  document.getElementById('newWeight').value='';document.getElementById('weightNote').value='';
- renderAll();toast('Gewicht gespeichert ⚖️')
+ renderProgress();
+ if(typeof renderHome==='function')renderHome();
+ toast('Gewicht gespeichert ⚖️')
 }
 
 let settingsDirty=false;
