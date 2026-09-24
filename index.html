@@ -958,7 +958,7 @@ function calculateTargets(){
  let bmr=p.sex==='female'?(10*w+6.25*h-5*age-161):(10*w+6.25*h-5*age+5);let cal=Math.round(bmr*a);
  if(g==='lose')cal=Math.round(cal*.85);if(g==='gain')cal=Math.round(cal*1.10);
  const protein=Math.round(w*(g==='gain'?2.0:1.8)),fat=Math.round(w*.75),carbs=Math.max(0,Math.round((cal-protein*4-fat*9)/4));
- document.getElementById('sCal').value=cal;document.getElementById('sP').value=protein;document.getElementById('sC').value=carbs;document.getElementById('sF').value=f;toast('Ziele berechnet – Werte bitte prüfen.')
+ document.getElementById('sCal').value=cal;document.getElementById('sP').value=protein;document.getElementById('sC').value=carbs;document.getElementById('sF').value=fat;toast('Ziele berechnet – Werte bitte prüfen.')
 }
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
@@ -988,13 +988,10 @@ async function importHealthFile(event){
       parsed=parseHealthCSV(await file.text());
     }else throw new Error('Bitte die entpackte export.xml, JSON oder CSV auswählen.');
     healthData=parsed;
-    try{localStorage.setItem('fitai_health',JSON.stringify(healthData));}catch(e){throw new Error('Die Health-Daten wurden gelesen, passen aber nicht in den lokalen Browser-Speicher. Bitte Safari-Speicher freigeben oder einen kleineren Zeitraum exportieren.');}
+    await saveHealthData(healthData);
+    try{localStorage.setItem('fitai_health_meta',JSON.stringify({importedAt:new Date().toISOString(),summary:formatHealthImportSummary(parsed)}));}catch(e){}
     renderHealth(); closeModal('healthImportModal'); toast(`Health importiert ✓ ${formatHealthImportSummary(parsed)}`);
-  }catch(err){console.error(err);alert('Health-Import fehlgeschlagen:
-
-'+(err.message||err)+'
-
-Die Datei wird nur auf deinem Gerät verarbeitet und nicht zu GitHub hochgeladen.');}
+  }catch(err){console.error(err);alert('Health-Import fehlgeschlagen:\n\n'+(err.message||err)+'\n\nDie Datei wird nur auf deinem Gerät verarbeitet und nicht zu GitHub hochgeladen.');}
   event.target.value='';
 }
 
