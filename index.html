@@ -765,6 +765,25 @@ window.fitAIHealthData=async function(data){
   toast('Apple Health synchronisiert ✓');
 };
 
+function selectedHealthPayload(){
+  if(!healthData) return null;
+  if(!healthData.daily) return healthData;
+  const keys=Array.isArray(healthData.availableDays)&&healthData.availableDays.length
+    ? healthData.availableDays
+    : Object.keys(healthData.daily||{});
+  const key=healthData.selectedDate && healthData.daily[healthData.selectedDate]
+    ? healthData.selectedDate
+    : (keys.includes(dateKey(new Date())) ? dateKey(new Date()) : keys.slice().sort().reverse()[0]);
+  if(!key || !healthData.daily[key]) return null;
+  return {...healthData.daily[key], selectedDate:key};
+}
+function selectHealthDay(key){
+  if(!healthData?.daily?.[key]) return;
+  healthData.selectedDate=key;
+  saveHealthData(healthData).catch(e=>console.warn('Health-Auswahl konnte nicht gespeichert werden',e));
+  renderHealth();
+}
+
 function renderHealth(){
   const d=selectedHealthPayload();
   const has=!!d;
@@ -999,9 +1018,6 @@ async function importHealthFile(event){
 async function init(){healthData=await loadHealthData();if(currentId&&accounts[currentId])enterApp();else{document.getElementById('loginScreen').classList.add('show');showLogin()}}
 init();
 ;
-</script>
-</body>
-</html
 </script>
 </body>
 </html>
