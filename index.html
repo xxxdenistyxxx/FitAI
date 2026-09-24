@@ -204,7 +204,7 @@ h1,h2,h3{letter-spacing:-.2px}
 </style>
 </head>
 <body>
-<!-- FitAI Buddy v25.1 -->
+<!-- FitAI Buddy v25.2 -->
 
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
@@ -253,8 +253,9 @@ h1,h2,h3{letter-spacing:-.2px}
     <button class="full" onclick="go('training')">Training öffnen</button>
   </div>
   <div class="card">
-    <h3>🤖 Coach Insight</h3>
-    <p id="homeInsight" class="muted">Protokolliere Gewicht, Ernährung und Training. FitAI erstellt daraus deine persönliche Übersicht.</p>
+    <div class="section-title"><h3>🔥 Motivation des Tages</h3><span class="pill">HEUTE</span></div>
+    <h2 id="dailyMotivation">Heute zählt dein nächster Schritt.</h2>
+    <p class="muted">Jeden Tag automatisch ein neuer Motivationsspruch.</p>
   </div>
 </section>
 
@@ -361,7 +362,7 @@ h1,h2,h3{letter-spacing:-.2px}
   </div>
   <div class="card" style="text-align:center;margin-bottom:6px">
     <div class="muted tiny">FitAI Buddy</div>
-    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.1</div>
+    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.2</div>
     <div class="muted tiny" style="margin-top:4px">Aktuell verwendete Version</div>
   </div>
 </section>
@@ -946,7 +947,7 @@ function renderAll(){
  document.getElementById('todayWorkout').textContent=last?last.name:'Kein Training geplant';
  document.getElementById('todayWorkoutPill').textContent=last?'TRAININGSPLAN':'START';
  document.getElementById('todayWorkoutText').textContent=last?`${last.exercises.length} Übungen · individuell anpassbar`:'Erstelle deinen ersten Trainingsplan im Training-Bereich.';
- document.getElementById('homeInsight').textContent=coachInsight();
+ renderDailyMotivation();
  renderTraining();renderHealth();renderNutrition();renderProgress();if(!settingsDirty)fillSettings()
 }
 function goalText(g){return g==='lose'?'Ziel: Körperfett reduzieren':g==='gain'?'Ziel: Muskelaufbau / Zunahme':'Ziel: Gewicht halten'}
@@ -957,6 +958,49 @@ function weightTrend(){
  const a=w[w.length-1].weight,b=w[w.length-2].weight,d=a-b;
  return (d<0?'↓ ':'↑ ')+Math.abs(d).toFixed(1).replace('.',',')+' kg seit letzter Messung'
 }
+
+const DAILY_MOTIVATION = [
+ 'Du musst nicht perfekt sein – du musst nur anfangen. 💪',
+ 'Jeder Schritt zählt. Bleib heute dran. 🔥',
+ 'Dein zukünftiges Ich wird dir für das Training heute danken.',
+ 'Kleine Fortschritte werden mit der Zeit zu großen Veränderungen. 🚀',
+ 'Disziplin bedeutet, auch dann weiterzumachen, wenn die Motivation mal fehlt.',
+ 'Heute ist ein guter Tag, um stärker zu werden. 🏋️',
+ 'Du bist deinem Ziel näher als gestern.',
+ 'Nicht aufgeben. Ein schlechter Tag verändert nicht deinen ganzen Weg.',
+ 'Mach es für dich. Für deine Gesundheit. Für dein stärkeres Ich. ❤️',
+ 'Dein Tempo ist egal – wichtig ist, dass du weitergehst.',
+ 'Ein Workout ist besser als ein Workout, das du nur planst. 😉',
+ 'Stärke entsteht durch Wiederholung. Bleib konsequent.',
+ 'Du brauchst keinen perfekten Tag. Du brauchst nur den nächsten Schritt.',
+ 'Heute 1 % besser als gestern. 📈',
+ 'Deine Gewohnheiten entscheiden, nicht deine Ausreden.',
+ 'Auch kleine Entscheidungen können große Veränderungen auslösen.',
+ 'Trainiere nicht nur deinen Körper – trainiere auch deine Disziplin.',
+ 'Der schwierigste Schritt ist oft der erste. Danach läuft es.',
+ 'Du kannst mehr, als du dir gerade vielleicht zutraust. 💪',
+ 'Bleib geduldig. Ergebnisse brauchen Zeit.',
+ 'Jede Wiederholung bringt dich deinem Ziel näher.',
+ 'Wenn du heute keine Motivation hast, vertraue auf deine Routine.',
+ 'Fortschritt ist Fortschritt – egal wie klein.',
+ 'Mach heute etwas, worauf du morgen stolz bist. 🔥',
+ 'Dein Ziel wird nicht von selbst näher kommen. Geh ihm entgegen.',
+ 'Konstanz schlägt kurzfristige Perfektion.',
+ 'Du bist nicht hier, um aufzugeben.',
+ 'Ein starker Körper beginnt mit starken Gewohnheiten.',
+ 'Heute zählt nicht, was gestern war. Heute kannst du wieder loslegen.',
+ 'Bleib fokussiert. Dein Weg gehört dir.'
+];
+
+function renderDailyMotivation(){
+ const el=document.getElementById('dailyMotivation');
+ if(!el)return;
+ const now=new Date();
+ const start=new Date(now.getFullYear(),0,0);
+ const day=Math.floor((now-start)/86400000);
+ el.textContent=DAILY_MOTIVATION[(day-1)%DAILY_MOTIVATION.length];
+}
+
 function coachInsight(){
  const p=profile(),t=totals();
  if(t.cal>p.cal*1.1)return 'Du liegst heute über deinem Kalorienziel. Einzelne Tage sind nicht entscheidend – betrachte den Wochentrend.';
@@ -1350,6 +1394,7 @@ document.addEventListener('dblclick',e=>{
 },{passive:false});
 
 async function init(){
+ renderDailyMotivation();
  healthData=await loadHealthData();
  if(currentId&&accounts[currentId]){
    const u=accounts[currentId];
@@ -1364,5 +1409,26 @@ document.addEventListener('input',e=>{if(e.target&&/^s(Name|Age|Height|Weight|Se
 init();
 ;
 </script>
+
+<style>
+#fitaiVersion {
+  text-align:center;
+  margin:18px 0 8px;
+  font-size:12px;
+  opacity:.55;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const settings=document.getElementById('settings');
+  if(settings && !document.getElementById('fitaiVersion')){
+    const v=document.createElement('div');
+    v.id='fitaiVersion';
+    v.textContent='FitAI Buddy · Version v25.2';
+    settings.appendChild(v);
+  }
+});
+</script>
+
 </body>
 </html>
