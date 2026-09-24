@@ -130,6 +130,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px}
 .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 .pin-key{height:54px;border-radius:14px;background:#1a1a1d;color:#fff;border:1px solid #2c2c31;font-size:20px;font-weight:800}
 .pin-key.action{font-size:14px;color:#c8c8cf}
+.pin-modal,.pin-modal *{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .pin-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
 .pin-actions button{background:#171719;color:#fff;border:1px solid #2b2b30}
 .pin-actions .confirm{background:#f5f5f7;color:#050505}
@@ -203,6 +204,7 @@ h1,h2,h3{letter-spacing:-.2px}
 </style>
 </head>
 <body>
+<!-- FitAI Buddy v25.0 -->
 
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
@@ -356,6 +358,11 @@ h1,h2,h3{letter-spacing:-.2px}
     <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importData(event)">
     <hr>
     <button class="ghost full" onclick="logout()">Abmelden</button>
+  </div>
+  <div class="card" style="text-align:center;margin-bottom:6px">
+    <div class="muted tiny">FitAI Buddy</div>
+    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.0</div>
+    <div class="muted tiny" style="margin-top:4px">Aktuell verwendete Version</div>
   </div>
 </section>
 
@@ -1013,14 +1020,21 @@ function renderProgress(){
  }else{
    const points=weights.map(w=>{const d=new Date(w.date);const label=d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});return {label,value:Number(w.weight)};});
    const first=Number(weights[0].weight),last=Number(weights.at(-1).weight),diff=last-first;
-   const rows=weights.slice().reverse().slice(0,12).map((w,i)=>{const prev=weights[weights.length-1-i-1];const change=prev?Number(w.weight)-Number(prev.weight):null;return `<tr><td>${formatProgressDate(w.date,weights.filter(x=>new Date(x.date).toLocaleDateString('de-DE')===new Date(w.date).toLocaleDateString('de-DE')).length>1)}</td><td><b>${Number(w.weight).toFixed(1).replace('.',',')} kg</b></td><td>${change==null?'–':(change>0?'+':'')+change.toFixed(1).replace('.',',')+' kg'}</td></tr>`}).join('');
+   const rows=weights.slice().reverse().slice(0,30).map((w,i)=>{
+     const chronologicalIndex=weights.findIndex(x=>x===w);
+     const prev=chronologicalIndex>0?weights[chronologicalIndex-1]:null;
+     const change=prev?Number(w.weight)-Number(prev.weight):null;
+     const isProfile=w.source==='profile' || String(w.note||'').toLowerCase()==='profil';
+     const action=isProfile?'<span class="muted tiny">Profilgewicht</span>':`<button class="danger tiny weight-delete-btn" type="button" onclick="deleteWeightEntry(${chronologicalIndex})">🗑️</button>`;
+     return `<tr><td>${formatProgressDate(w.date,weights.filter(x=>new Date(x.date).toLocaleDateString('de-DE')===new Date(w.date).toLocaleDateString('de-DE')).length>1)}</td><td><b>${Number(w.weight).toFixed(1).replace('.',',')} kg</b></td><td>${change==null?'–':(change>0?'+':'')+change.toFixed(1).replace('.',',')+' kg'}</td><td>${action}</td></tr>`;
+   }).join('');
    chart.innerHTML=svgLineChart(points,{unit:'kg',aria:'Gewichtsverlauf'})+
      `<div class="quick-stat">
        <div class="stat-item"><span>Startgewicht</span><b>${first.toFixed(1).replace('.',',')} kg</b></div>
        <div class="stat-item"><span>Aktuell</span><b>${last.toFixed(1).replace('.',',')} kg</b></div>
        <div class="stat-item"><span>Veränderung</span><b>${(diff>0?'+':'')+diff.toFixed(1).replace('.',',')} kg</b></div>
      </div>`+
-     `<div class="history-table" style="margin-top:12px"><table><thead><tr><th>Datum</th><th>Gewicht</th><th>Änderung</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+     `<div class="history-table" style="margin-top:12px"><table><thead><tr><th>Datum</th><th>Gewicht</th><th>Änderung</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
  }
  const strength=document.getElementById('strengthTable');
  const historical=Array.isArray(u.workouts)?u.workouts.flatMap(w=>(w.entries||[]).map(e=>({...e,date:w.date,plan:w.plan}))).filter(e=>Number(e.weight)>0):[];
@@ -1185,6 +1199,21 @@ function deleteFood(id){
  toast('Eintrag gelöscht');
 }
 
+function deleteWeightEntry(index){
+ const u=getUser();if(!u||!Array.isArray(u.weights))return;
+ const weights=u.weights.slice().filter(x=>Number.isFinite(Number(x.weight))&&x.date).sort((a,b)=>new Date(a.date)-new Date(b.date));
+ const target=weights[index];if(!target)return;
+ const isProfile=target.source==='profile'||String(target.note||'').toLowerCase()==='profil';
+ if(isProfile){toast('Das Profilgewicht bleibt als Startwert erhalten.');return}
+ if(!confirm(`Gewichtseintrag ${Number(target.weight).toFixed(1).replace('.',',')} kg wirklich entfernen?`))return;
+ const originalIndex=u.weights.indexOf(target);
+ if(originalIndex<0)return;
+ u.weights.splice(originalIndex,1);
+ accounts[currentId]=u;saveAccounts();
+ renderAll();
+ toast('Gewichtseintrag entfernt 🗑️');
+}
+
 function addWeight(){
  const v=Number(document.getElementById('newWeight').value);if(!v){toast('Gewicht eingeben.');return}
  const u=getUser();if(!u)return;
@@ -1312,6 +1341,10 @@ async function importHealthFile(event){
   event.target.value='';
 }
 
+
+document.addEventListener('dblclick',e=>{
+ if(e.target.closest?.('#pinModal,.pin-pad,.pin-key')){e.preventDefault();e.stopPropagation();}
+},{passive:false});
 
 async function init(){
  healthData=await loadHealthData();
