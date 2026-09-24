@@ -202,13 +202,30 @@ h1,h2,h3{letter-spacing:-.2px}
 
 .ai-chat{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto;padding:4px 0}.ai-msg{display:flex}.ai-msg.user{justify-content:flex-end}.ai-bubble{max-width:88%;padding:11px 13px;border-radius:16px;line-height:1.45;white-space:pre-wrap}.ai-msg.user .ai-bubble{background:#6d5dfc;color:#fff;border-bottom-right-radius:5px}.ai-msg.assistant .ai-bubble{background:#171719;border:1px solid #29292f;border-bottom-left-radius:5px}.ai-compose{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.ai-compose textarea{min-height:48px;max-height:130px;resize:vertical}.ai-status{font-size:12px;color:var(--muted)}.ai-chip{min-width:0!important;flex:0 1 auto!important}.ai-config{display:grid;grid-template-columns:1fr auto;gap:8px}
 
-.food-calendar{display:grid;grid-template-columns:48px 1fr 48px;gap:10px;align-items:center;margin:12px 0}
-.food-calendar input{width:100%;box-sizing:border-box;text-align:center}
-.food-calendar-card .ghost{margin-top:2px}
+.food-calendar{display:none}
+.food-calendar-card{padding:18px}
+.food-cal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.food-cal-head h3{margin:0 0 3px;font-size:21px}
+.food-today-btn{padding:9px 14px;min-height:40px}
+.food-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:4px 0 16px}
+.food-day{position:relative;min-width:0;height:62px;border:1px solid #29292d;border-radius:14px;background:#111113;color:#aaa;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px}
+.food-day span{font-size:11px;font-weight:600}
+.food-day b{font-size:17px;color:#eee}
+.food-day.selected{background:#fff;color:#111;border-color:#fff}
+.food-day.selected b{color:#111}
+.food-day.today:not(.selected){border-color:#777}
+.food-day i{position:absolute;right:4px;top:4px;font-style:normal;font-size:8px;line-height:14px;min-width:14px;height:14px;text-align:center;border-radius:8px;background:#333;color:#fff}
+.food-day.selected i{background:#111;color:#fff}
+.food-date-nav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px}
+.food-nav-btn{width:44px;height:44px;padding:0;font-size:26px;line-height:1}
+.food-selected-date{text-align:center;display:flex;flex-direction:column;gap:2px}
+.food-selected-date span{font-size:13px;color:#999;text-transform:capitalize}
+.food-selected-date b{font-size:18px}
+.food-date-hidden{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 </style>
 </head>
 <body>
-<!-- FitAI Buddy v25.4 -->
+<!-- FitAI Buddy v25.5 -->
 
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
@@ -285,17 +302,23 @@ h1,h2,h3{letter-spacing:-.2px}
 <section id="nutrition" class="page">
   <div class="section-title"><h2>🍽️ Ernährung</h2><button class="secondary" onclick="openModal('foodModal')">+ Essen</button></div>
   <div class="card food-calendar-card">
-    <div class="section-title">
-      <h3>📅 Ernährungskalender</h3>
-      <span id="foodDateLabel" class="muted small">Heute</span>
+    <div class="food-cal-head">
+      <div>
+        <h3>📅 Ernährungskalender</h3>
+        <span id="foodDateLabel" class="muted small">Heute</span>
+      </div>
+      <button class="secondary food-today-btn" onclick="selectTodayFoodDate()">Heute</button>
     </div>
-    <div class="food-calendar">
-      <button class="secondary" onclick="shiftFoodDate(-1)" aria-label="Vorheriger Tag">‹</button>
-      <input id="foodDate" type="date" onchange="setFoodDate(this.value)">
-      <button class="secondary" onclick="shiftFoodDate(1)" aria-label="Nächster Tag">›</button>
+    <div class="food-week" id="foodWeek"></div>
+    <div class="food-date-nav">
+      <button class="secondary food-nav-btn" onclick="shiftFoodDate(-1)" aria-label="Vorheriger Tag">‹</button>
+      <div class="food-selected-date">
+        <span id="foodSelectedWeekday">Heute</span>
+        <b id="foodSelectedDate">24.09.2026</b>
+      </div>
+      <button class="secondary food-nav-btn" onclick="shiftFoodDate(1)" aria-label="Nächster Tag">›</button>
     </div>
-    <button class="ghost full" onclick="selectTodayFoodDate()">📍 Heute auswählen</button>
-    <p class="muted small">Wähle einen Tag und trage dort deine Mahlzeiten ein. Die Einträge bleiben dem jeweiligen Datum zugeordnet.</p>
+    <input id="foodDate" class="food-date-hidden" type="date" onchange="setFoodDate(this.value)" aria-label="Datum auswählen">
   </div>
   <div class="card">
     <div class="kpi"><span id="calNow">0</span> <span class="muted">/ <span id="calGoal">0</span> kcal</span></div>
@@ -305,7 +328,7 @@ h1,h2,h3{letter-spacing:-.2px}
     <div class="statline"><span>🥑 Fett</span><b><span id="fNow">0</span> / <span id="fGoal">0</span> g</b></div>
   </div>
   <div class="card">
-    <div class="section-title"><h3>Heute</h3><span class="muted small" id="mealDate"></span></div>
+    <div class="section-title"><h3>🍽️ Mahlzeiten</h3><span class="muted small" id="mealDate"></span></div>
     <div id="foodList"></div>
   </div>
   <div class="card">
@@ -379,7 +402,7 @@ h1,h2,h3{letter-spacing:-.2px}
   </div>
   <div class="card" style="text-align:center;margin-bottom:6px">
     <div class="muted tiny">FitAI Buddy</div>
-    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.4</div>
+    <div style="font-size:16px;font-weight:800;margin-top:4px">Version v25.5</div>
     <div class="muted tiny" style="margin-top:4px">Aktuell verwendete Version</div>
   </div>
 </section>
@@ -1258,14 +1281,33 @@ function selectTodayFoodDate(){
 function renderFoodCalendar(){
  const input=document.getElementById('foodDate');
  const label=document.getElementById('foodDateLabel');
+ const selectedWeekday=document.getElementById('foodSelectedWeekday');
+ const selectedDate=document.getElementById('foodSelectedDate');
+ const week=document.getElementById('foodWeek');
  if(input) input.value=selectedFoodDate;
- if(label){
-   const d=selectedFoodDateObj();
-   const today=foodDateKey(new Date());
-   label.textContent=selectedFoodDate===today?'Heute':d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+
+ const d=selectedFoodDateObj();
+ const today=foodDateKey(new Date());
+ if(label) label.textContent=selectedFoodDate===today?'Heute':'Ausgewählter Tag';
+ if(selectedWeekday) selectedWeekday.textContent=d.toLocaleDateString('de-DE',{weekday:'long'});
+ if(selectedDate) selectedDate.textContent=d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+ if(week){
+   const monday=new Date(d);
+   const day=monday.getDay();
+   monday.setDate(monday.getDate()+(day===0?-6:1-day));
+   const names=['Mo','Di','Mi','Do','Fr','Sa','So'];
+   week.innerHTML=names.map((name,i)=>{
+     const x=new Date(monday);
+     x.setDate(monday.getDate()+i);
+     const key=foodDateKey(x);
+     const isSelected=key===selectedFoodDate;
+     const isToday=key===today;
+     const count=getUser().foods.filter(f=>foodDateKey(f.date)===key).length;
+     return `<button class="food-day ${isSelected?'selected':''} ${isToday?'today':''}" onclick="setFoodDate('${key}')"><span>${name}</span><b>${x.getDate()}</b>${count?`<i>${count}</i>`:''}</button>`;
+   }).join('');
  }
 }
-
 function renderNutrition(){
  const u=getUser(),p=u.profile,t=totalsForFoodDate(selectedFoodDate);
  document.getElementById('calNow').textContent=Math.round(t.cal).toLocaleString('de-DE');
@@ -1278,6 +1320,8 @@ function renderNutrition(){
  document.getElementById('fGoal').textContent=p.f;
  document.getElementById('calBar').style.width=Math.min(100,p.cal>0?t.cal/p.cal*100:0)+'%';
  renderFoodCalendar();
+ const mealDate=document.getElementById('mealDate');
+ if(mealDate) mealDate.textContent=selectedFoodDateObj().toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit'});
 
  const list=u.foods.filter(x=>foodDateKey(x.date)===selectedFoodDate);
  document.getElementById('foodList').innerHTML=list.length?list.map(f=>`<div class="meal"><div class="section-title"><h3>${esc(f.name)}</h3><b>${f.cal} kcal</b></div><p class="muted small">${f.meal} · ${f.p} g Protein · ${f.c} g KH · ${f.f} g Fett</p><button class="danger small" onclick="deleteFood('${f.id}')">Löschen</button></div>`).join(''):'<div class="empty">Noch keine Mahlzeiten für diesen Tag.</div>';
@@ -1511,7 +1555,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(settings && !document.getElementById('fitaiVersion')){
     const v=document.createElement('div');
     v.id='fitaiVersion';
-    v.textContent='FitAI Buddy · Version v25.4';
+    v.textContent='FitAI Buddy · Version v25.5';
     settings.appendChild(v);
   }
 });
