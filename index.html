@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>FitAI</title>
+<style>
+:root{--bg:#0b0d12;--card:#151922;--muted:#8f98aa;--text:#f6f7fb;--accent:#5b8cff;--green:#35d07f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
+.app{max-width:680px;margin:auto;min-height:100vh;padding-bottom:92px}.top{padding:24px 20px 10px}.top h1{margin:0;font-size:30px}.top p{color:var(--muted);margin:5px 0 0}
+.page{display:none;padding:10px 16px}.page.active{display:block}.card{background:var(--card);border-radius:20px;padding:18px;margin:12px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric{background:#1b202b;padding:16px;border-radius:16px}.metric b{display:block;font-size:23px;margin-top:5px}.muted{color:var(--muted)}.bar{height:9px;background:#292f3b;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);width:71%}
+button{border:0;border-radius:14px;padding:13px 16px;font-weight:700;font-size:15px;background:var(--accent);color:white}button.secondary{background:#252b37}button.full{width:100%}
+.row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #272d38}.row:last-child{border:0}
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,23,.94);backdrop-filter:blur(18px);display:flex;justify-content:center;border-top:1px solid #242936;z-index:5}.nav button{background:none;color:var(--muted);border-radius:0;padding:12px 10px;flex:1;max-width:130px;font-size:12px}.nav button.active{color:white}.nav span{display:block;font-size:20px;margin-bottom:2px}
+input{width:100%;padding:13px;border-radius:12px;border:1px solid #343b48;background:#10131a;color:white;font-size:16px}
+#photo{display:none}.foodimg{width:100%;border-radius:16px;margin-top:12px;display:none}.pill{display:inline-block;padding:6px 10px;border-radius:99px;background:#202735;color:#b8c7ff;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><h1>FitAI</h1><p id="greeting">Dein persönlicher AI Fitness Coach</p></header>
+
+<section id="home" class="page active">
+<div class="grid">
+<div class="metric">⚡ Readiness<b>76%</b><span class="muted">heute</span></div>
+<div class="metric">⚖️ Gewicht<b>95,8 kg</b><span class="muted">Trend −0,3 kg/Woche</span></div>
+<div class="metric">😴 Schlaf<b>7h 42m</b><span class="muted">letzte Nacht</span></div>
+<div class="metric">🔥 Kalorien<b>1.840</b><span class="muted">von 2.600 kcal</span></div>
+</div>
+<div class="card"><span class="pill">HEUTE</span><h2>Push A</h2><p class="muted">Deine Schulterleistung stagniert. Heute etwas weniger Volumen und saubere Technik priorisieren.</p><button onclick="go('training')">Training starten</button></div>
+<div class="card"><h3>🤖 AI Insight</h3><p>Dein Gewicht sinkt langsam, während deine Trainingsleistung stabil bleibt. Wir beobachten den Trend statt einzelne Tage zu überbewerten.</p></div>
+</section>
+
+<section id="training" class="page">
+<h2>Training</h2>
+<div class="card">
+<div class="row"><div><b>Bankdrücken</b><br><span class="muted">80 kg × 8 • RIR 2</span></div><span>✓</span></div>
+<div class="row"><div><b>Latziehen</b><br><span class="muted">70 kg × 10 • RIR 2</span></div><span>✓</span></div>
+<div class="row"><div><b>Schulterdrücken</b><br><span class="muted">40 kg × 8 • RIR 1</span></div><span>○</span></div>
+</div>
+<div class="card"><h3>AI Empfehlung</h3><p>Wenn dein nächster Satz wieder bei RIR 1 landet, reduziere das Gewicht um ca. 5–7 % statt weitere Wiederholungen zu erzwingen.</p><button class="full" onclick="alert('Workout gespeichert – Demo')">Workout speichern</button></div>
+</section>
+
+<section id="nutrition" class="page">
+<h2>Ernährung</h2>
+<div class="card"><h2>1.840 / 2.600 kcal</h2><div class="bar"><i></i></div><p class="muted">Protein 142/190 g · Kohlenhydrate 188/280 g · Fett 61/75 g</p></div>
+<div class="card">
+<h3>📸 Essen analysieren</h3>
+<p class="muted">Fotografiere dein Essen oder wähle ein Foto aus. Die AI soll Lebensmittel, Portionsgrößen und Makros schätzen.</p>
+<input id="photo" type="file" accept="image/*" capture="environment">
+<button class="full" onclick="document.getElementById('photo').click()">Kamera / Foto auswählen</button>
+<img id="preview" class="foodimg">
+</div>
+<div id="analysis" class="card" style="display:none"><span class="pill">AI-SCHÄTZUNG • DEMO</span><h3>Erkanntes Essen</h3>
+<div class="row"><span>🍗 Hähnchen · ~180 g</span><b>300 kcal</b></div>
+<div class="row"><span>🍚 Reis · ~200 g</span><b>260 kcal</b></div>
+<div class="row"><span>🥦 Gemüse · ~150 g</span><b>60 kcal</b></div>
+<div class="row"><span>🥫 Sauce · ~50 g</span><b>100 kcal</b></div>
+<h2>≈ 720 kcal</h2><p class="muted">Protein ~58 g · Kohlenhydrate ~65 g · Fett ~18 g</p>
+<button onclick="alert('Essen übernommen – Demo')">Übernehmen</button></div>
+<div class="card"><h3>Heute</h3><div class="row"><span>Frühstück</span><b>520 kcal</b></div><div class="row"><span>Mittagessen</span><b>720 kcal</b></div><div class="row"><span>Snack</span><b>180 kcal</b></div></div>
+</section>
+
+<section id="coach" class="page">
+<h2>AI Coach</h2><div class="card"><p><b>Coach:</b> Ich analysiere Training, Ernährung und Verlauf gemeinsam.</p><p class="muted">Beispiele: „Warum war mein Bankdrücken heute schlechter?“ · „Was soll ich heute trainieren?“ · „Wie viel Protein fehlt mir noch?“</p></div>
+<div class="card"><input id="q" placeholder="Frage deinen Coach …"><br><br><button onclick="coach()">Senden</button><p id="answer" class="muted"></p></div>
+</section>
+
+<section id="progress" class="page">
+<h2>Progress</h2>
+<div class="card"><h3>💪 Kraft</h3><div class="row"><span>Bankdrücken</span><b>70 → 80 kg</b></div><div class="row"><span>Latziehen</span><b>65 → 70 kg</b></div><div class="row"><span>Schulterdrücken</span><b>40 → 40 kg</b></div></div>
+<div class="card"><h3>⚖️ Körper</h3><div class="row"><span>Gewicht</span><b>96,4 → 95,8 kg</b></div><div class="row"><span>Trend</span><b>−0,3 kg/Woche</b></div></div>
+</section>
+
+<nav class="nav">
+<button class="active" onclick="go('home',this)"><span>⌂</span>Home</button>
+<button onclick="go('training',this)"><span>🏋️</span>Training</button>
+<button onclick="go('nutrition',this)"><span>🍽️</span>Essen</button>
+<button onclick="go('coach',this)"><span>✨</span>Coach</button>
+<button onclick="go('progress',this)"><span>📈</span>Progress</button>
+</nav>
+</div>
+<script>
+function go(id,el){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');window.scrollTo(0,0)}
+document.getElementById('photo').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let u=URL.createObjectURL(f);let p=document.getElementById('preview');p.src=u;p.style.display='block';document.getElementById('analysis').style.display='block'});
+function coach(){let q=document.getElementById('q').value.toLowerCase();let a=q.includes('protein')?'Dir fehlen heute ungefähr 48 g Protein bis zu deinem aktuellen Tagesziel.':q.includes('bank')?'Deine Bankdrückleistung liegt aktuell über deinem früheren Wert. Für die nächste Einheit würde ich die tatsächliche RIR-Entwicklung berücksichtigen.':'Ich würde dafür deine letzten Trainingsdaten, Ernährung und Regeneration gemeinsam analysieren. Im nächsten Schritt verbinden wir den echten AI-Backend-Coach.';document.getElementById('answer').textContent=a}
+</script>
+</body>
+</html>
