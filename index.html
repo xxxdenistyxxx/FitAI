@@ -618,11 +618,37 @@ async function deleteHealthData(){try{const db=await openHealthDB();await new Pr
 function openHealthImport(){document.getElementById('healthImportModal').classList.add('show')}
 function showHealthHelp(){openHealthImport()}
 function clearHealthData(){if(confirm('Importierte Health-Daten wirklich löschen?')){healthData=null;deleteHealthData();renderHealth();toast('Health-Daten gelöscht')}}
+function parseHealthDate(value){
+  if(value instanceof Date) return value;
+  if(typeof value==='number') return new Date(value);
+  let s=String(value??'').trim();
+  if(!s) return new Date(NaN);
+  // Apple Health commonly exports dates as: 2026-09-24 18:42:10 +0200
+  let m=s.match(/^(\\d{4}-\\d{2}-\\d{2})[ T](\\d{2}:\\d{2}:\\d{2})(?:\\.\\d+)?\\s*([+-]\\d{4})$/);
+  if(m) s=`${m[1]}T${m[2]}${m[3].slice(0,3)}:${m[3].slice(3)}`;
+  else if(/^\\d{4}-\\d{2}-\\d{2} \\d{2}:/.test(s)) s=s.replace(' ','T');
+  return new Date(s);
+}
 function startOfToday(d=new Date()){const x=new Date(d);x.setHours(0,0,0,0);return x}
-function dateKey(d){const x=new Date(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`}
-function dateLabel(key){const [y,m,d]=String(key).split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}
-function isTodayRange(start,end){const s=new Date(start),e=end?new Date(end):s,t=startOfToday(),tomorrow=new Date(t);tomorrow.setDate(tomorrow.getDate()+1);return s<tomorrow&&e>=t}
-function durationHours(a,b){return Math.max(0,(new Date(b)-new Date(a))/3600000)}
+function dateKey(d){
+  // For Apple Health, keep the calendar date from the source record so
+  // timezone conversion cannot move a record to the previous/next day.
+  const raw=String(d??'').trim();
+  const m=raw.match(/^(\\d{4}-\\d{2}-\\d{2})/);
+  if(m) return m[1];
+  const x=parseHealthDate(d);
+  if(Number.isNaN(x.getTime())) return '';
+  return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+}
+function dateLabel(key){
+  const m=String(key).match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  if(!m) return 'Unbekanntes Datum';
+  const [y,mo,da]=m.slice(1).map(Number);
+  const x=new Date(y,mo-1,da);
+  return Number.isNaN(x.getTime())?'Unbekanntes Datum':x.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function isTodayRange(start,end){const s=parseHealthDate(start),e=end?parseHealthDate(end):s,t=startOfToday(),tomorrow=new Date(t);tomorrow.setDate(tomorrow.getDate()+1);return !Number.isNaN(s.getTime())&&!Number.isNaN(e.getTime())&&s<tomorrow&&e>=t}
+function durationHours(a,b){const s=parseHealthDate(a),e=parseHealthDate(b);return Number.isNaN(s.getTime())||Number.isNaN(e.getTime())?0:Math.max(0,(e-s)/3600000)}
 function prettyWorkoutName(name){return String(name||'').replace(/^HKWorkoutActivityType/,'').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^traditional strength training$/i,'Krafttraining').replace(/^functional strength training$/i,'Krafttraining').replace(/^running$/i,'Laufen').replace(/^walking$/i,'Gehen')||'Workout'}
 
 function emptyHealthDay(){
@@ -645,7 +671,7 @@ function finalizeHealthDay(day){
   };
 }
 function buildHealthPayload(daily, source='Health-Import'){
-  const keys=Object.keys(daily).sort();
+  const keys=Object.keys(daily).filter(k=>/^\\d{4}-\\d{2}-\\d{2}$/.test(k)).sort();
   const todayKey=dateKey(new Date());
   const selectedKey=keys.includes(todayKey)?todayKey:(keys[keys.length-1]||todayKey);
   const finalized={};
@@ -657,7 +683,9 @@ function normalizeHealthPayload(data){
   if(!data)return null;
   if(data.fitaiHealth)return normalizeHealthPayload(data.fitaiHealth);
   if(data.daily){
-    const out={...data,updatedAt:data.updatedAt||Date.now(),availableDays:Object.keys(data.daily).sort()};
+    const validDaily={};
+    Object.entries(data.daily).forEach(([k,v])=>{if(/^\\d{4}-\\d{2}-\\d{2}$/.test(k))validDaily[k]=v;});
+    const out={...data,daily:validDaily,updatedAt:data.updatedAt||Date.now(),availableDays:Object.keys(validDaily).sort()};
     const key=data.selectedDate||out.availableDays[out.availableDays.length-1];
     if(key&&data.daily[key])Object.assign(out,data.daily[key]);
     return out;
@@ -682,7 +710,7 @@ function parseGenericHealthRecords(records,workoutRecords=[]){
     else if(/DistanceWalkingRunning/i.test(type))day.distanceKm+=v/1000;
     else if(/AppleExerciseTime|ExerciseTime/i.test(type))day.exerciseMinutes+=v;
     else if(/HeartRate/i.test(type)){day.hrSum+=v;day.hrCount++}
-    else if(/SleepAnalysis|Sleep/i.test(type)&&end&&start)day.sleepMs+=Math.max(0,new Date(end)-new Date(start));
+    else if(/SleepAnalysis|Sleep/i.test(type)&&end&&start)day.sleepMs+=Math.max(0,parseHealthDate(end)-parseHealthDate(start));
   }
   for(const w of workoutRecords){
     const start=w.start||w.startDate,end=w.end||w.endDate;
@@ -705,7 +733,7 @@ function parseAppleHealthRecordElement(r,daily,seen){
   else if(type==='HKQuantityTypeIdentifierDistanceWalkingRunning')day.distanceKm+=v/1000;
   else if(type==='HKQuantityTypeIdentifierAppleExerciseTime')day.exerciseMinutes+=v;
   else if(type==='HKQuantityTypeIdentifierHeartRate'){day.hrSum+=v;day.hrCount++;}
-  else if(type==='HKCategoryTypeIdentifierSleepAnalysis'){const valueAttr=r.getAttribute('value')||''; if(/Asleep/i.test(valueAttr)||/sleep/i.test(valueAttr))day.sleepMs+=Math.max(0,new Date(end)-new Date(start));}
+  else if(type==='HKCategoryTypeIdentifierSleepAnalysis'){const valueAttr=r.getAttribute('value')||''; if(/Asleep/i.test(valueAttr)||/sleep/i.test(valueAttr))day.sleepMs+=Math.max(0,parseHealthDate(end)-parseHealthDate(start));}
 }
 function parseAppleHealthWorkoutElement(w,daily){
   const start=w.getAttribute('startDate'),end=w.getAttribute('endDate')||start; if(!start)return;
@@ -781,7 +809,7 @@ window.selectedHealthPayload=function selectedHealthPayload(){
   return {...healthData.daily[key], selectedDate:key};
 };
 function selectHealthDay(key){
-  if(!healthData?.daily?.[key]) return;
+  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(key)) || !healthData?.daily?.[key]) return;
   healthData.selectedDate=key;
   saveHealthData(healthData).catch(e=>console.warn('Health-Auswahl konnte nicht gespeichert werden',e));
   renderHealth();
@@ -829,7 +857,7 @@ function renderHealth(){
   details.innerHTML=`<div class="health-detail-box"><span class="muted small">📅 Ausgewählter Tag</span><b>${label}</b></div><div class="health-detail-box"><span class="muted small">🚶 Distanz</span><b>${d.distanceKm!=null?Number(d.distanceKm).toFixed(1).replace('.',',')+' km':'–'}</b></div><div class="health-detail-box"><span class="muted small">❤️ Ø Herzfrequenz</span><b>${d.avgHeartRate!=null?Math.round(d.avgHeartRate)+' bpm':'–'}</b></div><div class="health-detail-box"><span class="muted small">⚡ Bewegungsenergie</span><b>${d.exerciseMinutes!=null?d.exerciseMinutes+' min':'–'}</b></div>`;
 
   const workouts=Array.isArray(d.workouts)?d.workouts:[];
-  document.getElementById('healthWorkoutList').innerHTML=workouts.length?workouts.slice(0,10).map(w=>`<div class="health-workout"><div><b>${esc(w.name||'Workout')}</b><div class="health-source">${w.date?new Date(w.date).toLocaleString('de-DE'):''} · ${w.durationMin||0} min</div></div><div style="text-align:right"><b>${w.calories!=null?Math.round(w.calories)+' kcal':'–'}</b><div class="health-source">${esc(w.source||'Apple Watch')}</div></div></div>`).join(''):`<div class="empty">Keine Workouts am ${label} gefunden.</div>`;
+  document.getElementById('healthWorkoutList').innerHTML=workouts.length?workouts.slice(0,10).map(w=>`<div class="health-workout"><div><b>${esc(w.name||'Workout')}</b><div class="health-source">${w.date&&!Number.isNaN(parseHealthDate(w.date).getTime())?parseHealthDate(w.date).toLocaleString('de-DE'):''} · ${w.durationMin||0} min</div></div><div style="text-align:right"><b>${w.calories!=null?Math.round(w.calories)+' kcal':'–'}</b><div class="health-source">${esc(w.source||'Apple Watch')}</div></div></div>`).join(''):`<div class="empty">Keine Workouts am ${label} gefunden.</div>`;
 }
 function openModal(id){document.getElementById(id).classList.add('show');if(id==='planModal')renderPlanChecks();if(id==='setModal')renderSetExerciseSelect()}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
@@ -935,10 +963,21 @@ function renderNutrition(){
 function createFood(){
  const name=document.getElementById('mFoodName').value.trim(),cal=Number(document.getElementById('mCal').value)||0,p=Number(document.getElementById('mP').value)||0,c=Number(document.getElementById('mC').value)||0,f=Number(document.getElementById('mF').value)||0,meal=document.getElementById('mMeal').value;
  if(!name||!cal){toast('Name und kcal eingeben.');return}
- getUser().foods.push({id:uid(),date:new Date().toISOString(),name,cal,p,c,f,meal});persist();closeModal('foodModal');
- ['mFoodName','mCal','mP','mC','mF'].forEach(id=>document.getElementById(id).value='');toast('Essen gespeichert 🍽️')
+ getUser().foods.push({id:uid(),date:new Date().toISOString(),name,cal,p,c,f,meal});
+ persist();
+ closeModal('foodModal');
+ ['mFoodName','mCal','mP','mC','mF'].forEach(id=>document.getElementById(id).value='');
+ renderNutrition();
+ renderHome();
+ toast('Essen gespeichert 🍽️');
 }
-function deleteFood(id){getUser().foods=getUser().foods.filter(x=>x.id!==id);persist();toast('Eintrag gelöscht')}
+function deleteFood(id){
+ getUser().foods=getUser().foods.filter(x=>x.id!==id);
+ persist();
+ renderNutrition();
+ renderHome();
+ toast('Eintrag gelöscht');
+}
 
 function askCoach(){
  const q=document.getElementById('coachQuestion').value.toLowerCase();let a='';
