@@ -173,6 +173,8 @@ h1,h2,h3{letter-spacing:-.2px}
 .health-import-box{background:#0e0e10;border:1px solid #242429;border-radius:16px;padding:14px;margin-top:10px}.health-source-badge{display:inline-flex;align-items:center;gap:6px;background:#16131f;color:#cfc5ff;border:1px solid #3a2b72;padding:5px 9px;border-radius:999px;font-size:11px}.health-help ol{padding-left:20px}.health-help li{margin:9px 0;color:#b5b5bd}.health-date-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #222}.health-date-row:last-child{border-bottom:0}
 .health-grid{margin-top:14px}.health-import-note{background:#111;border:1px solid #242424;border-radius:14px;padding:12px;margin-top:10px}.health-card{min-height:108px}.health-card b{font-size:26px}.health-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}.health-detail-box{background:#111;border:1px solid #242424;border-radius:14px;padding:12px}.health-detail-box b{display:block;font-size:18px;margin-top:4px}.health-workout{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #222}.health-workout:last-child{border-bottom:0}.health-source{font-size:11px;color:#9b9b9b}.health-ok{border-color:#3a2b72}.health-ok .pill{background:#2a1b63;color:#cbbcff}
 @media(max-width:430px){.health-details{grid-template-columns:1fr}.nav button{font-size:8px}.nav button span{font-size:15px}}
+
+.ai-chat{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto;padding:4px 0}.ai-msg{display:flex}.ai-msg.user{justify-content:flex-end}.ai-bubble{max-width:88%;padding:11px 13px;border-radius:16px;line-height:1.45;white-space:pre-wrap}.ai-msg.user .ai-bubble{background:#6d5dfc;color:#fff;border-bottom-right-radius:5px}.ai-msg.assistant .ai-bubble{background:#171719;border:1px solid #29292f;border-bottom-left-radius:5px}.ai-compose{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.ai-compose textarea{min-height:48px;max-height:130px;resize:vertical}.ai-status{font-size:12px;color:var(--muted)}.ai-chip{min-width:0!important;flex:0 1 auto!important}.ai-config{display:grid;grid-template-columns:1fr auto;gap:8px}
 </style>
 </head>
 <body>
@@ -231,13 +233,13 @@ h1,h2,h3{letter-spacing:-.2px}
 
 <section id="training" class="page">
   <div class="section-title"><div><h2>🏋️ Training</h2><p class="muted small" style="margin:4px 0 0">Muskelgruppen, Übungen & deine komplette Kraft-Historie</p></div><button class="secondary" onclick="openModal('planModal')">+ Plan</button></div>
-  <div class="training-tabs" id="trainingTabs">
+
+  <div class="training-tabs" style="margin:10px 0 4px">
     <button class="training-tab active" data-tmode="groups" onclick="setTrainingMode('groups')">Muskelgruppen</button>
     <button class="training-tab" data-tmode="plans" onclick="setTrainingMode('plans')">Meine Pläne</button>
     <button class="training-tab" data-tmode="all" onclick="setTrainingMode('all')">Übungen</button>
     <button class="training-tab" data-tmode="history" onclick="setTrainingMode('history')">Historie</button>
   </div>
-
   <div id="trainingBrowser"></div>
 
   <div class="card" style="margin-top:14px">
@@ -264,53 +266,6 @@ h1,h2,h3{letter-spacing:-.2px}
   <div class="card">
     <h3>💡 Ernährung</h3>
     <p id="nutritionInsight" class="muted">Trage deine Mahlzeiten ein, um dein Tagesziel zu verfolgen.</p>
-  </div>
-</section>
-
-<section id="health" class="page">
-  <div class="section-title"><div><h2>❤️ Health & Apple Watch</h2><p class="muted small" style="margin:4px 0 0">Schritte, Schlaf, Workouts & Aktivität</p></div><button class="secondary" onclick="openHealthImport()">📥 Importieren</button></div>
-  <div id="healthStatus" class="card">
-    <h3>⌚ Apple Watch → Apple Health → FitAI Buddy</h3>
-    <p class="muted">In der GitHub-Pages-Version kann FitAI Buddy Apple Health nicht direkt auslesen. Du kannst deine Health-Daten aber als <b>export.xml</b>, JSON oder CSV importieren. Der Import wird <b>komplett auf deinem Gerät</b> verarbeitet – die Health-Datei wird nicht zu GitHub hochgeladen.</p>
-    <div class="actions"><button class="full" onclick="openHealthImport()">📥 Health-Daten importieren</button><button class="secondary" onclick="showHealthHelp()">ℹ️ So geht's</button></div>
-    <input id="healthFileInput" type="file" accept=".xml,.json,.csv,text/xml,application/json,text/csv" style="display:none" onchange="importHealthFile(event)">
-    <p class="tiny muted" style="margin-bottom:0">Große Apple-Health-Exporte werden direkt im Browser verarbeitet, ohne die komplette Datei auf einmal zu laden. Wähle die entpackte <b>export.xml</b> aus.</p>
-  </div>
-  <div class="card" id="healthDayCard" style="display:none">
-    <div class="section-title"><div><h3>📅 Health-Daten ansehen</h3><p class="muted small" style="margin:4px 0 0">Der Export enthält mehrere Tage. Wähle hier einen Tag aus.</p></div>
-      <select id="healthDaySelect" onchange="selectHealthDay(this.value)" style="max-width:150px"></select>
-    </div>
-  </div>
-  <div class="grid health-grid">
-    <div class="metric health-card"><span>👟 Schritte</span><b id="healthSteps">–</b><span class="muted" id="healthStepsLabel">heute</span></div>
-    <div class="metric health-card"><span>😴 Schlaf</span><b id="healthSleep">–</b><span class="muted" id="healthSleepDetail">heute Nacht</span></div>
-    <div class="metric health-card"><span>🏃 Workouts</span><b id="healthWorkouts">–</b><span class="muted" id="healthWorkoutsLabel">heute</span></div>
-    <div class="metric health-card"><span>🔥 Aktivkalorien</span><b id="healthCalories">–</b><span class="muted" id="healthCaloriesLabel">heute</span></div>
-  </div>
-  <div class="card"><div class="section-title"><h3>❤️ Gesundheitsdaten</h3><span class="pill" id="healthUpdated">Noch nicht synchronisiert</span></div><div id="healthDetails" class="health-details"><div class="empty">Importiere deine export.xml, um deine Health-Daten anzuzeigen.</div></div></div>
-  <div class="card"><h3>🏋️ Apple-Workouts</h3><div id="healthWorkoutList"><div class="empty">Noch keine Apple-Workouts importiert.</div></div></div>
-  <div class="card"><h3>🔐 Datenschutz</h3><p class="muted small">Der Import wird nur in deinem Browser verarbeitet. Es wird nichts automatisch an einen Server übertragen. Wenn du Daten löschst, kannst du den Health-Import hier ebenfalls zurücksetzen.</p><button class="danger" onclick="clearHealthData()">Health-Daten löschen</button></div>
-</section>
-
-<section id="coach" class="page">
-  <h2>✨ AI Coach</h2>
-  <div class="card">
-    <p><b>FitAI Coach</b></p>
-    <p class="muted">Aktuell arbeitet der Coach ohne externe KI und nutzt deine lokal gespeicherten Daten. Eine echte KI können wir später als separates Modul ergänzen.</p>
-  </div>
-  <div class="card">
-    <input id="coachQuestion" placeholder="z. B. Wie viel Protein fehlt mir?"><br><br>
-    <button onclick="askCoach()">Senden</button>
-    <p id="coachAnswer" class="muted"></p>
-  </div>
-  <div class="card">
-    <h3>📌 Schnellfragen</h3>
-    <div class="actions">
-      <button class="secondary" onclick="quickCoach('protein')">Protein heute?</button>
-      <button class="secondary" onclick="quickCoach('kalorien')">Kalorien heute?</button>
-      <button class="secondary" onclick="quickCoach('training')">Training?</button>
-      <button class="secondary" onclick="quickCoach('gewicht')">Gewicht?</button>
-    </div>
   </div>
 </section>
 
@@ -362,6 +317,11 @@ h1,h2,h3{letter-spacing:-.2px}
     <br><button class="full" onclick="saveSettings()">Änderungen speichern</button>
   </div>
   <div class="card">
+    <h3>🤖 KI Coach verbinden</h3>
+    <p class="muted small">Für die echte KI braucht FitAI einen kleinen sicheren Backend-Endpunkt. Der API-Schlüssel gehört <b>nicht</b> in diese Website oder ins GitHub-Repository.</p>
+    <p class="muted small">Der Endpunkt wird nur lokal in deinem Browser gespeichert.</p>
+  </div>
+  <div class="card">
     <h3>💾 Daten & Profil</h3>
     <p class="muted small">Dein Profil und deine Daten liegen derzeit ausschließlich in diesem Browser auf diesem Gerät.</p>
     <div class="actions">
@@ -379,24 +339,13 @@ h1,h2,h3{letter-spacing:-.2px}
 <button class="active" style="--nav-color:#ffffff" data-page="home" onclick="go('home',this)"><span>⌂</span>Home</button>
 <button style="--nav-color:#6d5dfc" data-page="training" onclick="go('training',this)"><span>🏋️</span>Training</button>
 <button style="--nav-color:#35d07f" data-page="nutrition" onclick="go('nutrition',this)"><span>🍽️</span>Essen</button>
-<button style="--nav-color:#ff4f81" data-page="health" onclick="go('health',this)"><span>❤️</span>Health</button>
 <button style="--nav-color:#ffb454" data-page="coach" onclick="go('coach',this)"><span>✨</span>Coach</button>
 <button style="--nav-color:#4da3ff" data-page="progress" onclick="go('progress',this)"><span>📈</span>Progress</button>
 <button style="--nav-color:#ff5fa2" data-page="settings" onclick="go('settings',this)"><span>⚙️</span>Profil</button>
 </nav>
 </div>
 
-<div id="healthImportModal" class="modal" onclick="if(event.target===this)closeModal('healthImportModal')"><div class="sheet health-help">
-  <div class="section-title"><h2>❤️ Health-Daten importieren</h2><button class="secondary" onclick="closeModal('healthImportModal')">✕</button></div>
-  <div class="health-import-box"><span class="health-source-badge">⌚ Apple Watch</span> <span class="health-source-badge">❤️ Apple Health</span> <span class="health-source-badge">🌐 GitHub Pages</span>
-    <p class="muted small">Für die reine Web-Version importierst du die exportierten Health-Daten manuell. FitAI Buddy berechnet daraus die Tageswerte und zeigt die Apple-Workouts an.</p>
-  </div>
-  <button class="full" onclick="document.getElementById('healthFileInput').click();closeModal('healthImportModal')">📥 Datei auswählen</button>
-  <hr>
-  <h3>So bekommst du die Daten vom iPhone</h3>
-  <ol><li>Öffne <b>Apple Health</b> auf dem iPhone.</li><li>Tippe oben rechts auf dein <b>Profilbild</b>.</li><li>Wähle <b>Alle Gesundheitsdaten exportieren</b>.</li><li>Öffne die exportierte ZIP-Datei in der Dateien-App und entpacke sie.</li><li>Wähle hier die Datei <b>export.xml</b> aus.</li></ol>
-  <p class="tiny muted">FitAI Buddy liest daraus u. a. Schritte, Schlaf, aktive Energie, Geh-/Laufdistanz, Herzfrequenz, Trainingszeit und Workouts. Der bisherige Import zeigte nur den heutigen Tag; diese Version speichert die gefundenen Tage und du kannst sie anschließend auswählen. Die Rohdatei wird nicht hochgeladen.</p>
-</div></div>
+
 <div id="planModal" class="modal" onclick="if(event.target===this)closeModal('planModal')">
 <div class="sheet"><div class="section-title"><h2>Neuer Trainingsplan</h2><button class="secondary" onclick="closeModal('planModal')">✕</button></div><br>
 <label>Planname</label><input id="planName" placeholder="z. B. Push A">
@@ -426,6 +375,15 @@ h1,h2,h3{letter-spacing:-.2px}
 <div class="formgrid3"><div><label>Gewicht kg</label><input id="setW" type="number" step="0.5"></div><div><label>Wdh.</label><input id="setR" type="number"></div><div><label>RIR</label><input id="setRir" type="number" min="0" max="5"></div></div>
 <br><button class="full" onclick="saveSet()">Satz speichern</button></div></div>
 
+<div id="workoutExerciseModal" class="modal" onclick="if(event.target===this)closeModal('workoutExerciseModal')">
+  <div class="sheet">
+    <div class="section-title"><h2>Übungen hinzufügen</h2><button class="secondary" onclick="closeModal('workoutExerciseModal')">✕</button></div>
+    <p class="muted small">Wähle eine oder mehrere Übungen für dein aktuelles Workout.</p>
+    <div id="workoutExerciseChecks"></div>
+    <br>
+    <button class="full" onclick="addWorkoutExercises()">Zum Workout hinzufügen</button>
+  </div>
+</div>
 <div id="exerciseDetailModal" class="modal" onclick="if(event.target===this)closeModal('exerciseDetailModal')">
 <div class="sheet" id="exerciseDetailSheet"></div></div>
 
@@ -537,7 +495,7 @@ function setTrainingMode(mode){trainingMode=mode;selectedMuscle=null;document.qu
 function selectMuscle(name){selectedMuscle=name;trainingMode='muscle';document.querySelectorAll('.training-tab').forEach(b=>b.classList.remove('active'));renderTrainingBrowser()}
 function renderTrainingBrowser(){
  const el=document.getElementById('trainingBrowser');if(!el)return;ensureExerciseMetadata();
- const tools=`<div class="training-tools"><input class="training-search" placeholder="🔎 Übung suchen..." value="${esc(trainingSearch)}" oninput="trainingSearch=this.value;renderTrainingBrowser()"><button class="filter-chip ${equipmentFilter==='Alle'?'active':''}" onclick="setEquipmentFilter('Alle')">Alle</button><button class="filter-chip ${equipmentFilter==='Langhantel'?'active':''}" onclick="setEquipmentFilter('Langhantel')">Langhantel</button><button class="filter-chip ${equipmentFilter==='Kurzhanteln'?'active':''}" onclick="setEquipmentFilter('Kurzhanteln')">Kurzhantel</button><button class="filter-chip ${equipmentFilter==='Maschine'?'active':''}" onclick="setEquipmentFilter('Maschine')">Maschine</button><button class="filter-chip ${equipmentFilter==='Kabelzug'?'active':''}" onclick="setEquipmentFilter('Kabelzug')">Kabel</button><button class="filter-chip ${favoriteOnly?'active':''}" onclick="favoriteOnly=!favoriteOnly;renderTrainingBrowser()">⭐ Favoriten</button></div>`;
+ const tools=``;
  const imageCredit=`<div class="muted tiny" style="margin:6px 2px 10px">Übungsbilder: <a href="https://repdb.co" target="_blank" rel="noopener" style="color:#a78bfa">RepDB</a> · Kategorie-Fotos: <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:#a78bfa">Unsplash</a> · freie Nutzung gemäß jeweiliger Lizenz</div>`;
  if(trainingMode==='groups'){
   const groups=Object.entries(TRAINING_LIBRARY).filter(([name,g])=>(!trainingSearch||name.toLowerCase().includes(trainingSearch.toLowerCase())||g.desc.toLowerCase().includes(trainingSearch.toLowerCase())));
@@ -551,9 +509,19 @@ function renderTrainingBrowser(){
   let ex=getUser().exercises;ex=ex.filter(e=>{const m=EXERCISE_META[e.id]||{};const q=trainingSearch.toLowerCase();return (!q||e.name.toLowerCase().includes(q)||e.muscle.toLowerCase().includes(q))&&(equipmentFilter==='Alle'||(m.equipment||'').toLowerCase().includes(equipmentFilter.toLowerCase().replace('kurzhanteln','kurzhantel').replace('kabelzug','kabel')))&&(!favoriteOnly||!!e.favorite)});
   el.innerHTML=`<div class="card"><div class="library-head" style="margin-top:0"><h3>📚 Übungsbibliothek</h3><span class="library-count">${ex.length} Übungen</span></div>${tools}${imageCredit}<div class="exercise-library">${ex.length?ex.map(e=>exerciseCard(e)).join(''):'<div class="empty-state">Keine Übung gefunden.</div>'}</div></div>`;
  } else if(trainingMode==='plans'){
-  const u=getUser();el.innerHTML=`<div class="card"><div class="section-title"><h3>Meine Trainingspläne</h3><button class="secondary" onclick="openModal('planModal')">+ Plan</button></div>${u.plans.length?u.plans.slice().reverse().map(p=>`<div class="row"><div class="row-main"><b>${esc(p.name)}</b><span class="muted small">${p.exercises.length} Übungen</span></div><button class="secondary" onclick="activatePlan('${p.id}')">Auswählen</button></div>`).join(''):'<div class="empty">Noch kein Plan vorhanden.</div>'}</div>`;
+  const u=getUser(),active=latestPlan();
+  el.innerHTML=`<div class="card">
+    <div class="section-title"><h3>Meine Trainingspläne</h3><button class="secondary" onclick="openModal('planModal')">+ Plan</button></div>
+    ${u.plans.length?u.plans.slice().reverse().map(p=>`<div class="row">
+      <div class="row-main"><b>${esc(p.name)}</b><span class="muted small">${p.exercises.length} Übungen${active&&active.id===p.id?' · aktiv':''}</span></div>
+      <div class="actions" style="justify-content:flex-end">
+        <button class="secondary small" onclick="activatePlan('${p.id}')">${active&&active.id===p.id?'Aktiv':'Auswählen'}</button>
+        <button class="danger small" onclick="deletePlan('${p.id}')">Löschen</button>
+      </div>
+    </div>`).join(''):'<div class="empty">Noch kein Plan vorhanden.</div>'}
+  </div>`;
  } else if(trainingMode==='history'){
-  const u=getUser();const rows=u.workouts.slice().reverse();el.innerHTML=`<div class="card"><div class="section-title"><h3>📜 Komplette Trainingshistorie</h3><span class="library-count">${rows.length} Workouts</span></div><div class="quick-stat"><span>Workouts</span><b>${rows.length}</b></div><div class="quick-stat"><span>Gesamte Sätze</span><b>${rows.reduce((a,w)=>a+(w.sets||0),0)}</b></div>${rows.length?rows.map(w=>`<div class="row"><div class="row-main"><b>${esc(w.plan||'Workout')}</b><span class="muted small">${new Date(w.date).toLocaleString('de-DE')} · ${w.sets} Sätze</span></div><span class="pill">✓ gespeichert</span></div>`).join(''):'<div class="empty">Noch keine abgeschlossenen Workouts.</div>'}</div>`;
+  const u=getUser();const rows=u.workouts.slice().reverse();el.innerHTML=`<div class="card"><div class="section-title"><h3>📜 Komplette Trainingshistorie</h3><span class="library-count">${rows.length} Workouts</span></div><div class="quick-stat"><span>Workouts</span><b>${rows.length}</b></div><div class="quick-stat"><span>Gesamte Sätze</span><b>${rows.reduce((a,w)=>a+(w.sets||0),0)}</b></div>${rows.length?rows.map(w=>`<div class="row"><span class="pill">✓ gespeichert</span></div>`).join(''):'<div class="empty">Noch keine abgeschlossenen Workouts.</div>'}</div>`;
  }
 }
 function setEquipmentFilter(v){equipmentFilter=v;renderTrainingBrowser()}
@@ -604,7 +572,7 @@ function go(id,el){
  if(id==='health')renderHealth();
  if(id==='nutrition')renderNutrition();
  if(id==='progress')renderProgress();
- if(id==='profile')fillSettings();
+ if(id==='profile'){fillSettings();}
 }
 
 let healthData=null;
@@ -854,12 +822,17 @@ function renderHealth(){
     document.getElementById('healthWorkoutList').innerHTML='<div class="empty">Noch keine Apple-Workouts importiert.</div>';
     return;
   }
-  details.innerHTML=`<div class="health-detail-box"><span class="muted small">📅 Ausgewählter Tag</span><b>${label}</b></div><div class="health-detail-box"><span class="muted small">🚶 Distanz</span><b>${d.distanceKm!=null?Number(d.distanceKm).toFixed(1).replace('.',',')+' km':'–'}</b></div><div class="health-detail-box"><span class="muted small">❤️ Ø Herzfrequenz</span><b>${d.avgHeartRate!=null?Math.round(d.avgHeartRate)+' bpm':'–'}</b></div><div class="health-detail-box"><span class="muted small">⚡ Bewegungsenergie</span><b>${d.exerciseMinutes!=null?d.exerciseMinutes+' min':'–'}</b></div>`;
+  details.innerHTML=``;
 
   const workouts=Array.isArray(d.workouts)?d.workouts:[];
   document.getElementById('healthWorkoutList').innerHTML=workouts.length?workouts.slice(0,10).map(w=>`<div class="health-workout"><div><b>${esc(w.name||'Workout')}</b><div class="health-source">${w.date&&!Number.isNaN(parseHealthDate(w.date).getTime())?parseHealthDate(w.date).toLocaleString('de-DE'):''} · ${w.durationMin||0} min</div></div><div style="text-align:right"><b>${w.calories!=null?Math.round(w.calories)+' kcal':'–'}</b><div class="health-source">${esc(w.source||'Apple Watch')}</div></div></div>`).join(''):`<div class="empty">Keine Workouts am ${label} gefunden.</div>`;
 }
-function openModal(id){document.getElementById(id).classList.add('show');if(id==='planModal')renderPlanChecks();if(id==='setModal')renderSetExerciseSelect()}
+function openModal(id){
+ document.getElementById(id).classList.add('show');
+ if(id==='planModal')renderPlanChecks();
+ if(id==='setModal')renderSetExerciseSelect();
+ if(id==='workoutExerciseModal')renderWorkoutExerciseChecks();
+}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 
 function renderAll(){
@@ -908,18 +881,68 @@ function renderTraining(){
  const last=latestPlan();
  document.getElementById('activePlanText').textContent=last?`${last.name} · ${last.exercises.length} Übungen`:'Noch kein Trainingsplan erstellt.';
  const box=document.getElementById('workoutExercises');
- if(!last){box.innerHTML='<div class="empty">Erstelle oben rechts einen Trainingsplan.</div>'}
- else{
-  box.innerHTML=last.exercises.map(eid=>{
-   const e=u.exercises.find(x=>x.id===eid);if(!e)return'';
-   const prev=latestExerciseSet(eid);
-   return `<div class="exercise"><h3>${esc(e.name)}</h3><span class="muted small">${e.muscle}</span><div class="row"><span>Letzter Satz</span><b>${prev?`${prev.weight} kg × ${prev.reps} · RIR ${prev.rir}`:'noch keine Daten'}</b></div><button class="full" onclick="openSetFor('${e.id}')">+ Satz protokollieren</button></div>`
-  }).join('')
+ if(!last){
+   box.innerHTML='<div class="empty">Erstelle oben rechts einen Trainingsplan.</div>';
+ } else {
+   const addBtn=`<div class="actions" style="margin-bottom:10px"><button class="secondary full" onclick="openWorkoutExerciseModal()">＋ Übung hinzufügen</button></div>`;
+   const cards=last.exercises.map(eid=>{
+     const e=u.exercises.find(x=>x.id===eid);if(!e)return'';
+     const prev=latestExerciseSet(eid);
+     return `<div class="exercise">
+       <div class="section-title"><div><h3>${esc(e.name)}</h3><span class="muted small">${esc(e.muscle)}</span></div>
+       <button class="danger small" onclick="removeWorkoutExercise('${e.id}')">Entfernen</button></div>
+       <div class="row"><span>Letzter Satz</span><b>${prev?`${prev.weight} kg × ${prev.reps} · RIR ${prev.rir}`:'noch keine Daten'}</b></div>
+       <button class="full" onclick="openSetFor('${e.id}')">+ Satz protokollieren</button>
+     </div>`;
+   }).join('');
+   box.innerHTML=addBtn+(cards||'<div class="empty">Keine Übungen im aktuellen Workout.</div>');
  }
-
-
 }
-function latestPlan(){const u=getUser();return u.plans.length?u.plans[u.plans.length-1]:null}
+function latestPlan(){
+ const u=getUser();if(!u.plans.length)return null;
+ const active=u.plans.find(p=>p.id===u.activePlanId);
+ return active||u.plans[u.plans.length-1];
+}
+function activatePlan(id){
+ const u=getUser(),p=u.plans.find(x=>x.id===id);if(!p)return;
+ u.activePlanId=id;persist();renderTraining();toast(`„${p.name}“ ausgewählt ✓`);
+}
+function deletePlan(id){
+ const u=getUser(),p=u.plans.find(x=>x.id===id);if(!p)return;
+ if(!confirm(`Trainingsplan „${p.name}“ wirklich löschen?`))return;
+ u.plans=u.plans.filter(x=>x.id!==id);
+ if(u.activePlanId===id)u.activePlanId=u.plans.length?u.plans[u.plans.length-1].id:null;
+ persist();renderTraining();toast('Trainingsplan gelöscht 🗑️');
+}
+function openWorkoutExerciseModal(){
+ const p=latestPlan();if(!p){toast('Erstelle zuerst einen Trainingsplan.');return}
+ renderWorkoutExerciseChecks();openModal('workoutExerciseModal');
+}
+function renderWorkoutExerciseChecks(){
+ const u=getUser(),p=latestPlan(),current=new Set(p?.exercises||[]);
+ const el=document.getElementById('workoutExerciseChecks');if(!el)return;
+ el.innerHTML=u.exercises.map(e=>`<label style="display:flex;align-items:center;gap:8px;padding:9px 0;color:white">
+   <input type="checkbox" value="${e.id}" ${current.has(e.id)?'disabled':''} style="width:auto">
+   ${esc(e.name)} <span class="muted">· ${esc(e.muscle)}</span>
+   ${current.has(e.id)?'<span class="muted small">bereits enthalten</span>':''}
+ </label>`).join('');
+}
+function addWorkoutExercises(){
+ const u=getUser(),p=latestPlan();if(!p)return;
+ const ids=[...document.querySelectorAll('#workoutExerciseChecks input:checked:not(:disabled)')].map(x=>x.value);
+ if(!ids.length){toast('Wähle mindestens eine neue Übung.');return}
+ ids.forEach(id=>{if(!p.exercises.includes(id))p.exercises.push(id)});
+ persist();closeModal('workoutExerciseModal');renderTraining();toast(`${ids.length} Übung${ids.length===1?'':'en'} hinzugefügt ✓`);
+}
+function removeWorkoutExercise(id){
+ const p=latestPlan();if(!p)return;
+ const e=getUser().exercises.find(x=>x.id===id);
+ if(!confirm(`„${e?.name||'Übung'}“ aus dem aktuellen Workout entfernen?`))return;
+ p.exercises=p.exercises.filter(x=>x!==id);
+ const u=getUser();if(Array.isArray(u.__sessionSets))u.__sessionSets=u.__sessionSets.filter(s=>s.exerciseId!==id);
+ persist();renderTraining();toast('Übung entfernt 🗑️');
+}
+function latestExerciseSet(eid){const arr=getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid);return arr.length?arr[arr.length-1]:null}
 function latestExerciseSet(eid){const arr=getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid);return arr.length?arr[arr.length-1]:null}
 function countExerciseSets(eid){return getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid).length}
 function startWorkout(){workoutStarted=true;workoutStart=Date.now();document.getElementById('workoutTimer').textContent='00:00';clearInterval(timerInterval);timerInterval=setInterval(()=>{const s=Math.floor((Date.now()-workoutStart)/1000);document.getElementById('workoutTimer').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`},1000);toast('Workout gestartet 💪')}
@@ -941,7 +964,9 @@ function renderPlanChecks(){document.getElementById('planExerciseChecks').innerH
 function createPlan(){
  const name=document.getElementById('planName').value.trim();const ids=[...document.querySelectorAll('#planExerciseChecks input:checked')].map(x=>x.value);
  if(!name||!ids.length){toast('Planname und mindestens eine Übung wählen.');return}
- getUser().plans.push({id:uid(),name,exercises:ids,date:new Date().toISOString()});persist();closeModal('planModal');document.getElementById('planName').value='';toast('Trainingsplan erstellt 🎉')
+ const u=getUser(),p={id:uid(),name,exercises:ids,date:new Date().toISOString()};
+ u.plans.push(p);u.activePlanId=p.id;
+ persist();closeModal('planModal');document.getElementById('planName').value='';renderTraining();toast('Trainingsplan erstellt 🎉')
 }
 function createExercise(){
  const name=document.getElementById('newExerciseName').value.trim(),muscle=document.getElementById('newExerciseMuscle').value;
@@ -979,29 +1004,6 @@ function deleteFood(id){
  toast('Eintrag gelöscht');
 }
 
-function askCoach(){
- const q=document.getElementById('coachQuestion').value.toLowerCase();let a='';
- const p=profile(),t=totals();
- if(q.includes('protein'))a=`Heute sind ${Math.round(t.p)} g Protein eingetragen. Bis zu deinem Ziel von ${p.p} g fehlen ${Math.max(0,Math.round(p.p-t.p))} g.`;
- else if(q.includes('kalorien')||q.includes('kcal'))a=`Heute: ${Math.round(t.cal)} von ${p.cal} kcal. Verbleibend: ${Math.max(0,Math.round(p.cal-t.cal))} kcal.`;
- else if(q.includes('gewicht'))a=`Dein aktuelles Gewicht ist ${p.weight.toFixed(1)} kg. ${weightTrend()}.`;
- else if(q.includes('training'))a=getUser().workouts.length?`Du hast ${getUser().workouts.length} Workout(s) abgeschlossen. Dein aktueller Plan ist ${latestPlan()?latestPlan().name:'noch keiner'}.`:'Du hast noch kein Workout gespeichert. Starte deine erste Einheit.';
- else a=coachInsight();
- document.getElementById('coachAnswer').textContent=a
-}
-function quickCoach(type){document.getElementById('coachQuestion').value=type;askCoach()}
-
-function renderProgress(){
- const u=getUser();document.getElementById('progressWorkouts').textContent=u.workouts.length;
- const w=u.weights.slice(-8),chart=document.getElementById('weightChart');
- if(!w.length){chart.innerHTML='<div class="empty" style="width:100%">Noch keine Gewichtsdaten.</div>'}
- else{
-  const vals=w.map(x=>x.weight),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
-  chart.innerHTML=vals.map((v,i)=>`<div class="barcol" style="height:${35+((v-min)/range)*85}px"><span>${new Date(w[i].date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</span></div>`).join('')
- }
- const latest={};u.workouts.flatMap(x=>x.entries||[]).forEach(s=>latest[s.exerciseId]=s);
- document.getElementById('strengthTable').innerHTML=Object.entries(latest).length?`<table><tr><th>Übung</th><th>Gewicht</th><th>Wdh.</th><th>RIR</th></tr>${Object.entries(latest).map(([id,s])=>{const e=u.exercises.find(x=>x.id===id);return `<tr><td>${esc(e?e.name:id)}</td><td>${s.weight} kg</td><td>${s.reps}</td><td>${s.rir}</td></tr>`}).join('')}</table>`:'<div class="empty">Noch keine Kraftdaten.</div>'
-}
 function addWeight(){
  const v=Number(document.getElementById('newWeight').value);if(!v){toast('Gewicht eingeben.');return}
  const u=getUser();u.profile.weight=v;u.weights.push({date:new Date().toISOString(),weight:v,note:document.getElementById('weightNote').value.trim()});persist();document.getElementById('newWeight').value='';document.getElementById('weightNote').value='';toast('Gewicht gespeichert ⚖️')
