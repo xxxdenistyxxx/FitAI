@@ -316,12 +316,7 @@ h1,h2,h3{letter-spacing:-.2px}
     </div>
     <br><button class="full" onclick="saveSettings()">Änderungen speichern</button>
   </div>
-  <div class="card">
-    <h3>🤖 KI Coach verbinden</h3>
-    <p class="muted small">Für die echte KI braucht FitAI einen kleinen sicheren Backend-Endpunkt. Der API-Schlüssel gehört <b>nicht</b> in diese Website oder ins GitHub-Repository.</p>
-    <p class="muted small">Der Endpunkt wird nur lokal in deinem Browser gespeichert.</p>
-  </div>
-  <div class="card">
+<div class="card">
     <h3>💾 Daten & Profil</h3>
     <p class="muted small">Dein Profil und deine Daten liegen derzeit ausschließlich in diesem Browser auf diesem Gerät.</p>
     <div class="actions">
@@ -339,7 +334,6 @@ h1,h2,h3{letter-spacing:-.2px}
 <button class="active" style="--nav-color:#ffffff" data-page="home" onclick="go('home',this)"><span>⌂</span>Home</button>
 <button style="--nav-color:#6d5dfc" data-page="training" onclick="go('training',this)"><span>🏋️</span>Training</button>
 <button style="--nav-color:#35d07f" data-page="nutrition" onclick="go('nutrition',this)"><span>🍽️</span>Essen</button>
-<button style="--nav-color:#ffb454" data-page="coach" onclick="go('coach',this)"><span>✨</span>Coach</button>
 <button style="--nav-color:#4da3ff" data-page="progress" onclick="go('progress',this)"><span>📈</span>Progress</button>
 <button style="--nav-color:#ff5fa2" data-page="settings" onclick="go('settings',this)"><span>⚙️</span>Profil</button>
 </nav>
@@ -874,6 +868,52 @@ function coachInsight(){
  return 'Deine Daten werden gesammelt. Nutze Training, Ernährung und Gewicht regelmäßig, damit Trends sichtbar werden.'
 }
 
+function svgLineChart(points, opts={}){
+ const W=720,H=280,PL=54,PR=18,PT=22,PB=52;
+ const plotW=W-PL-PR,plotH=H-PT-PB;
+ if(!points.length)return '<div class="empty">Noch keine Daten vorhanden.</div>';
+ const vals=points.map(p=>Number(p.value)||0),minV=Math.min(...vals),maxV=Math.max(...vals);
+ const pad=Math.max((maxV-minV)*0.15,0.5),lo=Math.max(0,minV-pad),hi=maxV+pad;
+ const x=i=>points.length===1?PL+plotW/2:PL+(i/(points.length-1))*plotW;
+ const y=v=>PT+((hi-v)/(hi-lo))*plotH;
+ const poly=points.map((p,i)=>`${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
+ const grid=[0,1,2,3,4].map(i=>{const v=hi-(i/4)*(hi-lo),yy=y(v);return `<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="#24242a"/><text x="${PL-8}" y="${yy+4}" text-anchor="end" fill="#8b8b93" font-size="11">${Number(v).toFixed(opts.decimals??1).replace('.',',')}</text>`}).join('');
+ const labels=points.map((p,i)=>{if(points.length>8 && i%Math.ceil(points.length/6)!==0 && i!==points.length-1)return '';return `<text x="${x(i)}" y="${H-20}" text-anchor="middle" fill="#8b8b93" font-size="10">${esc(p.label)}</text>`}).join('');
+ const dots=points.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.value)}" r="4" fill="#6d5dfc"><title>${esc(p.label)}: ${Number(p.value).toFixed(1).replace('.',',')} ${esc(opts.unit||'')}</title></circle>`).join('');
+ return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="100%" height="280" role="img" aria-label="${esc(opts.aria||'Verlauf')}" style="min-width:520px;display:block">${grid}<polyline points="${poly}" fill="none" stroke="#6d5dfc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg></div>`;
+}
+function renderProgress(){
+ const u=getUser();if(!u)return;
+ const p=u.profile||{};
+ const weights=Array.isArray(u.weights)?u.weights.slice().filter(x=>Number.isFinite(Number(x.weight))&&x.date).sort((a,b)=>new Date(a.date)-new Date(b.date)):[];
+ document.getElementById('progressWorkouts').textContent=Array.isArray(u.workouts)?u.workouts.length:0;
+ const chart=document.getElementById('weightChart');
+ if(!weights.length){chart.innerHTML='<div class="empty">Noch keine Gewichtsdaten. Trage unten dein erstes Gewicht ein.</div>';}else{
+   const points=weights.map(w=>({label:new Date(w.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}),value:Number(w.weight)}));
+   chart.innerHTML=svgLineChart(points,{unit:'kg',aria:'Gewichtsverlauf'});
+ }
+ const strength=document.getElementById('strengthTable');
+ const entries=Array.isArray(u.workouts)?u.workouts.flatMap(w=>(w.entries||[]).map(e=>({...e,date:w.date}))):[];
+ const grouped={};
+ entries.forEach(e=>{const id=e.exerciseId;if(!id)return;(grouped[id]??=[]).push(e)});
+ const ids=Object.keys(grouped).filter(id=>grouped[id].some(e=>Number(e.weight)>0));
+ if(!ids.length){strength.innerHTML='<div class="empty">Noch keine Kraftdaten. Starte ein Workout und protokolliere deine Sätze. Danach wird die Entwicklung hier automatisch angezeigt.</div>';return;}
+ const options=ids.map(id=>{const ex=u.exercises.find(x=>x.id===id);return `<option value="${esc(id)}">${esc(ex?.name||id)}</option>`}).join('');
+ strength.innerHTML=`<label class="muted small">Übung auswählen</label><select id="strengthExercise" onchange="renderStrengthChart(this.value)">${options}</select><div id="strengthChart" style="margin-top:12px"></div><div id="strengthSummary" class="quick-stat" style="margin-top:10px"></div>`;
+ renderStrengthChart(ids[0]);
+}
+function renderStrengthChart(exerciseId){
+ const u=getUser();const box=document.getElementById('strengthChart');const summary=document.getElementById('strengthSummary');if(!u||!box)return;
+ const ex=u.exercises.find(x=>x.id===exerciseId);const rows=(u.workouts||[]).slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).flatMap(w=>{
+   const vals=(w.entries||[]).filter(e=>e.exerciseId===exerciseId).map(e=>Number(e.weight)||0).filter(v=>v>0);
+   if(!vals.length)return [];
+   return [{date:w.date,value:Math.max(...vals)}];
+ });
+ const points=rows.map(r=>({label:new Date(r.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}),value:r.value}));
+ box.innerHTML=svgLineChart(points,{unit:'kg',aria:`Kraftentwicklung ${ex?.name||''}`});
+ const first=points[0]?.value,last=points.length?points[points.length-1].value:null;
+ if(summary)summary.innerHTML=`<span>Erster Bestwert</span><b>${first!=null?first.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Aktueller Bestwert</span><b>${last!=null?last.toFixed(1).replace('.',',')+' kg':'–'}</b><span>Veränderung</span><b>${first!=null&&last!=null?(last-first>=0?'+':'')+(last-first).toFixed(1).replace('.',',')+' kg':'–'}</b>`;
+}
 function renderTraining(){
  const u=getUser();if(!u)return;
  ensureExerciseMetadata();
@@ -932,7 +972,10 @@ function addWorkoutExercises(){
  const ids=[...document.querySelectorAll('#workoutExerciseChecks input:checked:not(:disabled)')].map(x=>x.value);
  if(!ids.length){toast('Wähle mindestens eine neue Übung.');return}
  ids.forEach(id=>{if(!p.exercises.includes(id))p.exercises.push(id)});
- persist();closeModal('workoutExerciseModal');renderTraining();toast(`${ids.length} Übung${ids.length===1?'':'en'} hinzugefügt ✓`);
+ persist();
+ renderTraining();
+ closeModal('workoutExerciseModal');
+ toast(`${ids.length} Übung${ids.length===1?'':'en'} hinzugefügt ✓`);
 }
 function removeWorkoutExercise(id){
  const p=latestPlan();if(!p)return;
@@ -942,7 +985,6 @@ function removeWorkoutExercise(id){
  const u=getUser();if(Array.isArray(u.__sessionSets))u.__sessionSets=u.__sessionSets.filter(s=>s.exerciseId!==id);
  persist();renderTraining();toast('Übung entfernt 🗑️');
 }
-function latestExerciseSet(eid){const arr=getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid);return arr.length?arr[arr.length-1]:null}
 function latestExerciseSet(eid){const arr=getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid);return arr.length?arr[arr.length-1]:null}
 function countExerciseSets(eid){return getUser().workouts.flatMap(w=>w.entries||[]).filter(s=>s.exerciseId===eid).length}
 function startWorkout(){workoutStarted=true;workoutStart=Date.now();document.getElementById('workoutTimer').textContent='00:00';clearInterval(timerInterval);timerInterval=setInterval(()=>{const s=Math.floor((Date.now()-workoutStart)/1000);document.getElementById('workoutTimer').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`},1000);toast('Workout gestartet 💪')}
@@ -1006,27 +1048,35 @@ function deleteFood(id){
 
 function addWeight(){
  const v=Number(document.getElementById('newWeight').value);if(!v){toast('Gewicht eingeben.');return}
- const u=getUser();u.profile.weight=v;u.weights.push({date:new Date().toISOString(),weight:v,note:document.getElementById('weightNote').value.trim()});persist();document.getElementById('newWeight').value='';document.getElementById('weightNote').value='';toast('Gewicht gespeichert ⚖️')
+ const u=getUser();
+ if(!u.profile)u.profile={name:u.name||'',age:21,height:175,weight:v,sex:'male',activity:1.55,goal:'lose',cal:2600,p:190,c:280,f:75};
+ if(!Array.isArray(u.weights))u.weights=[];
+ u.profile.weight=v;
+ u.weights.push({date:new Date().toISOString(),weight:v,note:document.getElementById('weightNote').value.trim()});
+ accounts[currentId]=u;saveAccounts();
+ document.getElementById('newWeight').value='';document.getElementById('weightNote').value='';
+ renderAll();toast('Gewicht gespeichert ⚖️')
 }
 
 function fillSettings(){
  const p=profile();document.getElementById('sName').value=p.name||'';document.getElementById('sAge').value=p.age||'';document.getElementById('sHeight').value=p.height||'';document.getElementById('sWeight').value=p.weight||'';document.getElementById('sSex').value=p.sex||'male';document.getElementById('sActivity').value=p.activity||1.55;document.getElementById('sGoal').value=p.goal||'lose';document.getElementById('sCal').value=p.cal||2600;document.getElementById('sP').value=p.p||190;document.getElementById('sC').value=p.c||280;document.getElementById('sF').value=p.f||75
 }
 function saveSettings(){
- const p=profile();
+ const u=getUser();if(!u)return;
+ const old={...(u.profile||{})};
  const val=id=>document.getElementById(id)?.value ?? '';
- const num=(id,fallback)=>{const n=Number(val(id));return Number.isFinite(n)&&n>0?n:fallback};
- const name=val('sName').trim(); if(name)p.name=name;
- p.age=num('sAge',p.age||21); p.height=num('sHeight',p.height||175); p.weight=num('sWeight',p.weight||95.8);
- p.sex=val('sSex')||p.sex||'male'; p.activity=Number(val('sActivity'))||p.activity||1.55; p.goal=val('sGoal')||p.goal||'lose';
- p.cal=num('sCal',p.cal||2600); p.p=num('sP',p.p||190); p.c=num('sC',p.c||280); p.f=num('sF',p.f||75);
- const u=getUser();
- if(!Array.isArray(u.weights))u.weights=[];
- u.weights.push({date:new Date().toISOString(),weight:p.weight,note:'Profil aktualisiert'});
- accounts[currentId]=u;
+ const num=(id,fallback)=>{const raw=val(id).trim();if(raw==='')return fallback;const n=Number(raw);return Number.isFinite(n)&&n>0?n:fallback};
+ const name=val('sName').trim();
+ const p={...old};
+ if(name)p.name=name;
+ p.age=num('sAge',old.age??21);p.height=num('sHeight',old.height??175);p.weight=num('sWeight',old.weight??95.8);
+ p.sex=val('sSex')||old.sex||'male';p.activity=Number(val('sActivity'))||old.activity||1.55;p.goal=val('sGoal')||old.goal||'lose';
+ p.cal=num('sCal',old.cal??2600);p.p=num('sP',old.p??190);p.c=num('sC',old.c??280);p.f=num('sF',old.f??75);
+ u.profile=p;accounts[currentId]=u;
  try{saveAccounts();}catch(e){console.error(e);alert('Profil konnte nicht gespeichert werden. Bitte prüfe den freien Speicher im Browser.');return;}
- fillSettings(); renderAll(); toast('Profil gespeichert ✅')
+ fillSettings();renderAll();toast('Profil gespeichert ✅')
 }
+
 function calculateTargets(){
  const p=profile(),age=Number(document.getElementById('sAge').value)||21,h=Number(document.getElementById('sHeight').value)||175,w=Number(document.getElementById('sWeight').value)||95.8,a=Number(document.getElementById('sActivity').value)||1.55,g=document.getElementById('sGoal').value;
  let bmr=p.sex==='female'?(10*w+6.25*h-5*age-161):(10*w+6.25*h-5*age+5);let cal=Math.round(bmr*a);
@@ -1071,7 +1121,16 @@ async function importHealthFile(event){
 }
 
 
-async function init(){healthData=await loadHealthData();if(currentId&&accounts[currentId])enterApp();else{document.getElementById('loginScreen').classList.add('show');showLogin()}}
+async function init(){
+ healthData=await loadHealthData();
+ if(currentId&&accounts[currentId]){
+   const u=accounts[currentId];
+   u.profile={name:u.profile?.name??u.name??'',age:u.profile?.age??21,height:u.profile?.height??175,weight:u.profile?.weight??95.8,sex:u.profile?.sex??'male',activity:u.profile?.activity??1.55,goal:u.profile?.goal??'lose',cal:u.profile?.cal??2600,p:u.profile?.p??190,c:u.profile?.c??280,f:u.profile?.f??75};
+   if(!Array.isArray(u.weights))u.weights=[];
+   if(!Array.isArray(u.foods))u.foods=[];if(!Array.isArray(u.exercises))u.exercises=structuredClone(defaultExercises);if(!Array.isArray(u.plans))u.plans=[];if(!Array.isArray(u.workouts))u.workouts=[];
+   accounts[currentId]=u;saveAccounts();enterApp();
+ }else{document.getElementById('loginScreen').classList.add('show');showLogin()}
+}
 init();
 ;
 </script>
